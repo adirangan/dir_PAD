@@ -4,13 +4,13 @@
 %%%%%%%%;
 
 platform_type = 'rusty';
-if exist('platform.type','file'); fp=fopen('platform.type'); platform_type = fscanf(fp,'%s'); fclose(fp); end;
+if exist('platform.type','file'); fp=fopen('platform.type'); platform_type = fgetl(fp); fclose(fp); end;
 if strcmp(platform_type,'eval1'); string_root = '/home'; end;
 if strcmp(platform_type,'access1'); string_root = '/data'; end;
 if strcmp(platform_type,'Windows'); string_root = 'C:/Users'; end;
 
 platform_user = 'rangan/dir_bcc';
-if exist('platform.user','file'); fp=fopen('platform.user'); platform_user = fscanf(fp,'%s'); fclose(fp); end;
+if exist('platform.user','file'); fp=fopen('platform.user'); platform_user = fgetl(fp); fclose(fp); end;
 
 setup_local;
 
