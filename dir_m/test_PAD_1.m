@@ -3,13 +3,18 @@
 % subjects_measurements_quarterly_50th_percentile_Chimpanzee.xlsx ;
 %%%%%%%%;
 
-platform = 'rusty';
-if exist('platform.type','file'); fp=fopen('platform.type'); platform = fscanf(fp,'%s'); fclose(fp); end;
-if strcmp(platform,'eval1'); string_root = 'home'; end;
-if strcmp(platform,'access1'); string_root = 'data'; end;
+platform_type = 'rusty';
+if exist('platform.type','file'); fp=fopen('platform.type'); platform_type = fscanf(fp,'%s'); fclose(fp); end;
+if strcmp(platform_type,'eval1'); string_root = '/home'; end;
+if strcmp(platform_type,'access1'); string_root = '/data'; end;
+if strcmp(platform_type,'Windows'); string_root = 'C:/Users'; end;
+
+platform_user = 'rangan/dir_bcc';
+if exist('platform.user','file'); fp=fopen('platform.user'); platform_user = fscanf(fp,'%s'); fclose(fp); end;
+
 setup_local;
 
-dir_base = sprintf('/%s/rangan/dir_bcc/dir_PAD',string_root);
+dir_base = sprintf('%s/%s/dir_PAD',string_root,platform_user);
 fname_xls = sprintf('%s/subjects_measurements_quarterly_50th_percentile_Chimpanzee.xlsx',dir_base);
 flag_replot = 1; nf=0;
 
