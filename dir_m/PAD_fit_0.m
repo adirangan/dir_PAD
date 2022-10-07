@@ -176,7 +176,7 @@ while flag_continue;
 for niid=0:n_iid-1;
 tmp_index_missing_ = index_missing_il__{1+niid};
 Y_iva___{1+niid}(1+tmp_index_missing_) = X_iva___{1+niid}(1+tmp_index_missing_);
-if flag_verbose; disp(sprintf(' %% niid %d/%d: numel missing %d',niid,n_iid,numel(tmp_index_missing_))); end;
+if (flag_verbose>1); disp(sprintf(' %% niid %d/%d: numel missing %d',niid,n_iid,numel(tmp_index_missing_))); end;
 end;%for niid=0:n_iid-1;
 %%%%%%%%;
 n_t_all = sum(n_t_i_);

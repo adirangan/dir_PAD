@@ -330,7 +330,7 @@ xlim(age_lim_); grid on;
 legend({u_label_measurement_{1+nv0},u_label_measurement_{1+nv1}},'Location','SouthEast');
 
 parameter = struct('type','parameter');
-parameter.flag_verbose = 1;
+parameter.flag_verbose = 0;
 n_var = 2;
 data_0in_iva___ = data_iva___(:,1+[nv0,nv1],:);
 data_0in_measure_iva___ = data_measure_iva___(:,1+[nv0,nv1],:);
