@@ -8,6 +8,7 @@ PAD_fit_0( ...
 ,age_ ...
 ,n_iid ...
 ,n_var ...
+,str_var_use_v_ ...
 ,data_0in_iva___ ...
 ,data_0in_measure_iva___ ...
 ,n_q ...
@@ -30,6 +31,7 @@ if (nargin<1+na); n_age=[]; end; na=na+1;
 if (nargin<1+na); age_=[]; end; na=na+1;
 if (nargin<1+na); n_iid=[]; end; na=na+1;
 if (nargin<1+na); n_var=[]; end; na=na+1;
+if (nargin<1+na); str_var_use_v_=[]; end; na=na+1;
 if (nargin<1+na); data_0in_iva___=[]; end; na=na+1;
 if (nargin<1+na); data_0in_measure_iva___=[]; end; na=na+1;
 if (nargin<1+na); n_q=[]; end; na=na+1;
@@ -136,6 +138,7 @@ hold off;
 xlim(age_lim_); grid on;
 xlabel('age','Interpreter','none');
 ylabel('value','Interpreter','none');
+title(str_var_use_v_{1+nvar},'Interpreter','none');
 end;%for nvar=0:n_var-1;
 end;%if flag_verbose;
 
@@ -158,36 +161,46 @@ end;%if flag_verbose;
 %%%%%%%%;
 % initialization. ;
 %%%%%%%%;
+ignore_Y_iva___ = cell(n_iid,1);
 Y_iva___ = cell(n_iid,1);
 X_iva___ = cell(n_iid,1);
 t_ia__ = cell(n_iid,1);
 n_t_i_ = zeros(n_iid,1);
 for niid=0:n_iid-1;
 Y_iva___{1+niid} = data_nrm_use_iva___{1+niid};
+ignore_Y_iva___{1+niid} = zeros(size(Y_iva___{1+niid}));
 X_iva___{1+niid} = zeros(size(Y_iva___{1+niid}));
 t_ia__{1+niid} = age_use_ia__{1+niid};
 n_t_i_(1+niid) = numel(t_ia__{1+niid});
 end;%for niid=0:n_iid-1;
+%%%%;
+for niid=0:n_iid-1;
+tmp_index_missing_ = index_missing_il__{1+niid};
+Y_iva___{1+niid}(1+tmp_index_missing_) = X_iva___{1+niid}(1+tmp_index_missing_);
+ignore_Y_iva___{1+niid}(1+tmp_index_missing_) = 1;
+if (flag_verbose>1); disp(sprintf(' %% niid %d/%d: numel missing %d',niid,n_iid,numel(tmp_index_missing_))); end;
+end;%for niid=0:n_iid-1;
+%%%%%%%%;
 
 niteration=0; flag_continue = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 while flag_continue;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-for niid=0:n_iid-1;
-tmp_index_missing_ = index_missing_il__{1+niid};
-Y_iva___{1+niid}(1+tmp_index_missing_) = X_iva___{1+niid}(1+tmp_index_missing_);
-if (flag_verbose>1); disp(sprintf(' %% niid %d/%d: numel missing %d',niid,n_iid,numel(tmp_index_missing_))); end;
-end;%for niid=0:n_iid-1;
 %%%%%%%%;
 n_t_all = sum(n_t_i_);
-XY_va__ = zeros(n_var,n_t_all);
+X_va__ = zeros(n_var,n_t_all);
+ignore_Y_va__ = zeros(n_var,n_t_all);
+Y_va__ = zeros(n_var,n_t_all);
 na=0;
 for niid=0:n_iid-1;
-XY_va__(:,1+na+[0:n_t_i_(1+niid)-1]) = Y_iva___{1+niid} - X_iva___{1+niid};
+tmp_index_ = na+[0:n_t_i_(1+niid)-1];
+X_va__(:,1+tmp_index_) = X_iva___{1+niid};
+ignore_Y_va__(:,1+tmp_index_) = ignore_Y_iva___{1+niid};
+Y_va__(:,1+tmp_index_) = Y_iva___{1+niid};
 na=na + n_t_i_(1+niid);
 end;%for niid=0:n_iid-1;
 assert(na==n_t_all);
-f_nlp = @(w0l0l1_) PAD_nlp_XYC_strip_0(n_var,n_t_all,XY_va__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2));
+f_nlp = @(w0l0l1_) PAD_nlp_tXYC_strip_1(n_var,n_t_all,X_va__,ignore_Y_va__,Y_va__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2));
 [w0l0l1_opt_,fval_opt] = fminsearch(f_nlp,[C_omega,C_l0,C_l1],optimset('MaxFunEvals',1024));
 C_omega = w0l0l1_opt_(1+0); C_l0 = w0l0l1_opt_(1+1); C_l1 = w0l0l1_opt_(1+2);
 if flag_verbose;
@@ -212,7 +225,7 @@ for niid=0:n_iid-1;
 ,ZQ_vda__ ...
 ,ZP_vda__ ...
 ] = ...
-PAD_nlp_tXaAB_strip_0( ...
+PAD_nlp_dtXaAB_strip_0( ...
  n_t_i_(1+niid) ...
 ,t_ia__{1+niid} ...
 ,n_var ...
@@ -228,7 +241,7 @@ XY_vda__(:,1+nda+[0:n_t_i_(1+niid)-1-1]) = ZP_vda__;
 nda=nda + n_t_i_(1+niid)-1;
 end;%for niid=0:n_iid-1;
 assert(nda==n_dt_all);
-f_nlp = @(w0l0l1_) PAD_nlp_XYC_strip_0(n_var,n_dt_all,XY_vda__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2));
+f_nlp = @(w0l0l1_) PAD_nlp_tXYC_strip_0(n_var,n_dt_all,XY_vda__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2));
 [w0l0l1_opt_,fval_opt] = fminsearch(f_nlp,[B_omega,B_l0,B_l1],optimset('MaxFunEvals',1024));
 B_omega = w0l0l1_opt_(1+0); B_l0 = w0l0l1_opt_(1+1); B_l1 = w0l0l1_opt_(1+2);
 if flag_verbose;

@@ -311,8 +311,10 @@ xlabel('iid');ylabel('data_measure_i_','Interpreter','none');
 %%%%%%%%;
 
 age_lim_ = [min(age_),max(age_)];
-nv0 = efind(strcmp(u_label_measurement_,'Body Weight'));
-nv1 = efind(strcmp(u_label_measurement_,'Glucose'));
+n_var_use = 2;
+str_var_use_v_ = {'Body Weight','Glucose'};
+nv0 = efind(strcmp(u_label_measurement_,str_var_use_v_{1+0}));
+nv1 = efind(strcmp(u_label_measurement_,str_var_use_v_{1+1}));
 %%%%%%%%;
 % Note that nv0 increases roughly linearly until around age 10-15 or so. ;
 % plot(age_,squeeze(data_iva___(:,1+[nv0],:)),'o'); grid on;
@@ -330,8 +332,7 @@ xlim(age_lim_); grid on;
 legend({u_label_measurement_{1+nv0},u_label_measurement_{1+nv1}},'Location','SouthEast');
 
 parameter = struct('type','parameter');
-parameter.flag_verbose = 0;
-n_var = 2;
+parameter.flag_verbose = 1;
 data_0in_iva___ = data_iva___(:,1+[nv0,nv1],:);
 data_0in_measure_iva___ = data_measure_iva___(:,1+[nv0,nv1],:);
 n_q=[];
@@ -351,7 +352,8 @@ PAD_fit_0( ...
 ,n_age ...
 ,age_ ...
 ,n_iid ...
-,2 ...
+,n_var_use ...
+,str_var_use_v_ ...
 ,data_0in_iva___ ...
 ,data_0in_measure_iva___ ...
 );
