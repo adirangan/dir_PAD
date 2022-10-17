@@ -43,7 +43,7 @@ str_thisfunction = 'PAD_nlp_itXaABYC_update_0';
 if (nargin<1);
 disp(sprintf(' %% testing %s',str_thisfunction));
 %%%%%%%%;
-disp(sprintf(' %% not yet implemented'));
+disp(sprintf(' %% see: test_%s_0.m',str_thisfunction));
 %%%%%%%%;
 disp('returning'); return;
 end;%if (nargin<1);
@@ -77,7 +77,23 @@ str_update = parameter.str_update;
 
 if flag_verbose; disp(sprintf(' %% str_update: %s',str_update)); end;
 
-if strcmp(str_update,'CtCn_xx__');
+if isempty(X_ixt___);
+X_ixt___ = cell(n_i,1);
+for ni=0:n_i-1;
+ignore_Y_xt__ = ignore_Y_ixt___{1+ni};
+Y_xt__ = Y_ixt___{1+ni};
+X_xt__ = 0.5*Y_xt__.*(~ignore_Y_xt__);
+X_ixt___{1+ni} = X_xt__;
+clear ignore_Y_xt__ Y_xt__ X_xt__ ;
+end;%for ni=0:n_i-1;
+end;%if isempty(X_ixt___);
+
+if isempty(a_xa__); a_xa__ = zeros(n_x,n_a); end;
+if isempty(A_xx__); A_xx__ = zeros(n_x,n_x); end;
+if isempty(B_omega); B_omega = 0; end; if isempty(B_l0); B_l0 = 0; end; if isempty(B_l1); B_l1 = 0; end;
+if isempty(C_omega); C_omega = 0; end; if isempty(C_l0); C_l0 = 0; end; if isempty(C_l1); C_l1 = 0; end;
+
+if ~isempty(strfind(str_update,'CtCn_xx__'));
 %%%%%%%%;
 n_t_all = sum(n_t_i_);
 X_all_xt__ = zeros(n_x,n_t_all);
@@ -104,9 +120,9 @@ parameter.nlp_tXYC_pre = nlp_tXYC_pre;
 parameter.nlp_tXYC_pos = nlp_tXYC_pos;
 clear tmp_index_ X_all_xt__ ignore_Y_all_xt__ Y_all_xt__ f_nlp ;
 %%%%%%%%;
-end;%if strcmp(str_update,'CtCn_xx__');
+end;%if ~isempty(strfind(str_update,'CtCn_xx__'));
 
-if strcmp(str_update,'BtBn_xx__');
+if ~isempty(strfind(str_update,'BtBn_xx__'));
 %%%%%%%%;
 % Designed with the assumption that all the dt are the same. ;
 %%%%%%%%;
@@ -159,14 +175,15 @@ parameter.nlp_dtZPB_pre = nlp_dtZPB_pre;
 parameter.nlp_dtZPB_pos = nlp_dtZPB_pos;
 clear ZP_all_xdt__ f_nlp ;
 %%%%%%%%;
-end;%if strcmp(str_update,'BtBn_xx__');
+end;%if ~isempty(strfind(str_update,'BtBn_xx__'));
 
-if strcmp(str_update,'a_xa_') | strcmp(str_update,'A_xx__');
+if ~isempty(strfind(str_update,'a_xa_')) | ~isempty(strfind(str_update,'A_xx__'));
 %%%%%%%%;
 % Note that we actually update a_xa__ and A_xx__ independently ;
 % (each is updated assuming that the other is a constant). ;
 % In future versions we should update these simultaneously. ;
 %%%%%%%%;
+nlp_dtXaAB_sum_pre = 0;
 nlp_dtXaAB_da_sum_xa__ = zeros(n_x,n_a);
 nlp_dtXaAB_da_sum_xaxa____ = zeros(n_x,n_a,n_x,n_a);
 nlp_dtXaAB_dA_sum_xx__ = zeros(n_x,n_x);
@@ -200,6 +217,7 @@ PAD_nlp_dtXaAB_0( ...
 ,B_l0 ...
 ,B_l1 ...
 );
+nlp_dtXaAB_sum_pre = nlp_dtXaAB_sum_pre + nlp_dtXaAB;
 nlp_dtXaAB_da_sum_xa__ = nlp_dtXaAB_da_sum_xa__ + nlp_dtXaAB_da_xa__;
 nlp_dtXaAB_da_sum_xaxa____ = nlp_dtXaAB_da_sum_xaxa____ + nlp_dtXaAB_da_xaxa____;
 nlp_dtXaAB_dA_sum_xx__ = nlp_dtXaAB_dA_sum_xx__ + nlp_dtXaAB_dA_xx__;
@@ -209,11 +227,41 @@ end;%for ni=0:n_i-1;
 a_xa__ = reshape( - pinv(reshape(nlp_dtXaAB_da_sum_xaxa____,[n_x*n_a,n_x*n_a]),tolerance_master) * reshape(nlp_dtXaAB_da_sum_xa__,[n_x*n_a,1]) , [n_x,n_a] );
 A_xx__ = reshape( - pinv(reshape(nlp_dtXaAB_dA_sum_xxxx____,[n_x^2,n_x^2]),tolerance_master) * reshape(nlp_dtXaAB_dA_sum_xx__,[n_x^2,1]) , [n_x,n_x] );
 clear nlp_dtXaAB_da_sum_xa__ nlp_dtXaAB_da_sum_xaxa____ nlp_dtXaAB_dA_sum_xx__ nlp_dtXaAB_dA_sum_xxxx____ ;
+%%%%;
+nlp_dtXaAB_sum_pos = 0;
+for ni=0:n_i-1;
+n_t = n_t_i_(1+ni);
+t_t_ = t_it__{1+ni};
+X_xt__ = X_ixt___{1+ni};
+[ ...
+ parameter ...
+,nlp_dtXaAB ...
+] = ...
+PAD_nlp_dtXaAB_0( ...
+ parameter ...
+,n_t ...
+,t_t_ ...
+,n_x ...
+,X_xt__ ...
+,n_a ...
+,a_xa__ ...
+,A_xx__ ...
+,B_omega ...
+,B_l0 ...
+,B_l1 ...
+);
+nlp_dtXaAB_sum_pos = nlp_dtXaAB_sum_pos + nlp_dtXaAB;
+clear n_t t_t_ X_xt_ nlp_dtXaAB ;
+end;%for ni=0:n_i-1;
+%%%%;
+parameter.nlp_dtXaAB_sum_pre = nlp_dtXaAB_sum_pre;
+parameter.nlp_dtXaAB_sum_pos = nlp_dtXaAB_sum_pos;
 %%%%%%%%;
-end;%if strcmp(str_update,'a_xa_') | strcmp(str_update,'A_xx_');
+end;%if ~isempty(strfind(str_update,'a_xa_')) | ~isempty(strfind(str_update,'A_xx_'));
 
-if strcmp(str_update,'X_xt__');
+if ~isempty(strfind(str_update,'X_xt__'));
 %%%%%%%%;
+nlp_tXaABYC_sum_pre = 0;
 for ni=0:n_i-1;
 n_t = n_t_i_(1+ni);
 t_t_ = t_it__{1+ni};
@@ -248,6 +296,7 @@ PAD_nlp_tXaABYC_0( ...
 ,C_l0 ...
 ,C_l1 ...
 );
+nlp_tXaABYC_sum_pre = nlp_tXaABYC_sum_pre + nlp_tXaABYC;
 tmp_RHS_xt_ = reshape(nlp_dtXaAB_dX_xt__ + nlp_tXYC_dX_xt__,[n_x*n_t,1]);
 tmp_LHS_xtxt__ = nlp_dtXaAB_dX_xtxt__ + nlp_tXYC_dX_xtxt__;
 X_opt_xt__ = -reshape(tmp_LHS_xtxt__\tmp_RHS_xt_,[n_x,n_t]);
@@ -255,8 +304,45 @@ X_ixt___{1+ni} = X_opt_xt__;
 clear n_t t_t_ X_xt__ ignore_Y_xt__ Y_xt__ tmp_RHS_xt_ tmp_LHS_xt_ X_opt_xt__ ;
 clear nlp_tXaABYC nlp_dtXaAB nlp_tXYC nlp_dtXaAB_dX_xt__ nlp_dtXaAB_dX_xtxt__ nlp_tXYC_dX_xt__ nlp_tXYC_dX_xtxt__ ;
 end;%for ni=0:n_i-1;
+%%%%;
+nlp_tXaABYC_sum_pos = 0;
+for ni=0:n_i-1;
+n_t = n_t_i_(1+ni);
+t_t_ = t_it__{1+ni};
+X_xt__ = X_ixt___{1+ni};
+ignore_Y_xt__ = ignore_Y_ixt___{1+ni};
+Y_xt__ = Y_ixt___{1+ni};
+[ ...
+ parameter ...
+,nlp_tXaABYC ...
+] = ...
+PAD_nlp_tXaABYC_0( ...
+ parameter ...
+,n_t ...
+,t_t_ ...
+,n_x ...
+,X_xt__ ...
+,n_a ...
+,a_xa__ ...
+,A_xx__ ...
+,B_omega ...
+,B_l0 ...
+,B_l1 ...
+,ignore_Y_xt__ ...
+,Y_xt__ ...
+,C_omega ...
+,C_l0 ...
+,C_l1 ...
+);
+nlp_tXaABYC_sum_pos = nlp_tXaABYC_sum_pos + nlp_tXaABYC;
+clear n_t t_t_ X_xt__ ignore_Y_xt__ Y_xt__ ;
+clear nlp_tXaABYC ;
+end;%for ni=0:n_i-1;
+%%%%;
+parameter.nlp_tXaABYC_sum_pre = nlp_tXaABYC_sum_pre;
+parameter.nlp_tXaABYC_sum_pos = nlp_tXaABYC_sum_pos;
 %%%%%%%%;
-end;%if strcmp(str_update,'X_xt__');
+end;%if ~isempty(strfind(str_update,'X_xt__'));
 
 
 
