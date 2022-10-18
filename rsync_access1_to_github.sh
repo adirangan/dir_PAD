@@ -27,7 +27,7 @@ git add *.sh ;
 git commit -m "updating dir_PAD for shreya thirumalai " ;
 git push ;
 git pull ;
-cd /home/rangan/dir_bcc/dir_PAD ;
+cd /data/rangan/dir_bcc/dir_PAD ;
 
 #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
 #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
