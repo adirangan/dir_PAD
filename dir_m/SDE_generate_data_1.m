@@ -27,14 +27,14 @@ str_thisfunction = 'SDE_generate_data_1';
 if nargin<1;
 tolerance_master = 1e-6;
 rseed = 1;
-n_x = 2; T_ini = 0; T_max = 256;
-A_xx__ = [-0.1 , +1.0   ; ...
-            -1 , -0.2 ] ;
+n_x = 2; T_ini = 0; T_max = 256; dt_0in = 1/32;
+A_xx__ = [-0.3 , +1.0   ; ...
+            -1 , -0.5 ] ;
 n_a = 3;
 a_xa__ = [ +1.00 , -2.00/T_max , +9.50/T_max.^2   ; ...
            -0.50 , +1.25/T_max , -9.25/T_max.^2 ] ;
-B_inv__ = [ +1 , 0.1  ; ...
-	    -1 , 0.2] ;
+B_inv__ = [ +0.5 , 0.3  ; ...
+	    -0.4 , 0.8] ;
 BtBn_inv_xx__ = B_inv__*transpose(B_inv__);
 BtBn_xx__ = pinv(BtBn_inv_xx__,tolerance_master);
 C_inv__ = [ +0.5 , +0.3  ;   ...
@@ -42,8 +42,8 @@ C_inv__ = [ +0.5 , +0.3  ;   ...
 CtCn_inv_xx__ = C_inv__*transpose(C_inv__);
 CtCn_xx__ = pinv(CtCn_inv_xx__,tolerance_master);
 parameter = struct('type','parameter');
-parameter.dt_avg = 0.15;
-parameter.dt_var = 0.15;
+parameter.dt_avg = dt_0in;
+parameter.flag_discrete_vs_exponential = 1;
 parameter.T_ini = T_ini;
 parameter.T_max = T_max;
 parameter.rseed = rseed;
@@ -104,14 +104,14 @@ if isempty(parameter); parameter = struct('type','parameter'); end;
 if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; end;
 if (~isfield(parameter,'flag_verbose')); parameter.flag_verbose = 0; end;
 if (~isfield(parameter,'dt_avg')); parameter.dt_avg = 0.25; end;
-if (~isfield(parameter,'dt_var')); parameter.dt_var = 0; end;
+if (~isfield(parameter,'flag_discrete_vs_exponential')); parameter.flag_discrete_vs_exponential = 0; end;
 if (~isfield(parameter,'T_ini')); parameter.T_ini = 0; end;
 if (~isfield(parameter,'T_max')); parameter.T_max = 64; end;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end;
 tolerance_master = parameter.tolerance_master;
 flag_verbose = parameter.flag_verbose;
 dt_avg = parameter.dt_avg;
-dt_var = parameter.dt_var;
+flag_discrete_vs_exponential = parameter.flag_discrete_vs_exponential;
 T_ini = parameter.T_ini;
 T_max = parameter.T_max;
 rseed = parameter.rseed;
@@ -120,8 +120,8 @@ t_t_ = zeros(n_t,1);
 rng(rseed);
 t_t_(1+0) = T_ini;
 for nt=1:n_t-1;
-if (dt_var==dt_avg); dt=-dt_avg * log(1-rand()); end;
-if (dt_var==0); dt=dt_avg; end;
+if (flag_discrete_vs_exponential==0); dt=-dt_avg * log(1-rand()); end;
+if (flag_discrete_vs_exponential==1); dt=dt_avg; end;
 dt_dt_(1+nt-1) = dt;
 t_t_(1+nt) = t_t_(1+nt-1) + dt;
 end;%for nt=1:n_t-1;
@@ -172,7 +172,12 @@ Q_pre_x_ = Q_xt__(:,1+nt-1);
 Q_pos_x_ = Q_xt__(:,1+nt-0);
 P_pre_x_ = P_xt__(:,1+nt-1);
 tmp_exp_Adt_xx__ = Psi_xx__ * diag(exp(+Lambda_x_*dt)) * Psi_inv_xx__;
+if flag_discrete_vs_exponential==0;
 P_pos_x_ = real( + tmp_exp_Adt_xx__ * ( P_pre_x_ + SDE_sample_int_expnAsBdW_2(dt,Psi_xx__,Lambda_x_,Psi_inv_xx__,B_pinv_xx__,tolerance_master)) );
+end;%if flag_discrete_vs_exponential==0;
+if flag_discrete_vs_exponential==1;
+P_pos_x_ = P_pre_x_ + A_xx__*P_pre_x_*dt + B_pinv_xx__*randn(n_x,1)*sqrt(dt); %<-- discrete ito-step. ;
+end;%if flag_discrete_vs_exponential==1;
 P_xt__(:,1+nt-0) = P_pos_x_;
 X_pos_x_ = P_pos_x_ + Q_pos_x_;
 X_xt__(:,1+nt-0) = X_pos_x_;

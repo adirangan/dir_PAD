@@ -8,13 +8,13 @@ rseed = 1;
 %%%%%%%%;
 % generate SDE data for each individual. ;
 %%%%%%%%;
-n_x = 2; T_ini = 0; T_max = 256; dt_0in = 0.0625;
+n_x = 2; T_ini = 0; T_max = 256; dt_0in = 1/16;
 A_tru_xx__ = [-0.1 , +1.0   ; ...
-            -1 , -0.2 ] ;
+              -1.0 , -0.2 ] ;
 n_a = 3;
 a_tru_xa__ = [ +1.00 , -2.00/T_max , +9.50/T_max.^2   ; ...
-           -0.50 , +1.25/T_max , -9.25/T_max.^2 ] ;
-B_tru_omega = pi/3;
+               -0.50 , +1.25/T_max , -9.25/T_max.^2 ] ;
+B_tru_omega = +pi/3;
 B_tru_l0 = +1.0;
 B_tru_l1 = -0.5;
 [ ...
@@ -27,7 +27,7 @@ PAD_BtBn_0( ...
 ,B_tru_l0 ...
 ,B_tru_l1 ...
 );
-C_tru_omega = pi/5;
+C_tru_omega = -2*pi/5;
 C_tru_l0 = +0.3;
 C_tru_l1 = -0.8;
 [ ...
@@ -54,7 +54,7 @@ ignore_Y_tru_ixt___ = cell(n_i,1);
 %%%%;
 parameter_gen = struct('type','parameter');
 parameter_gen.dt_avg = dt_0in;
-parameter_gen.dt_var = 0.0000;
+parameter_gen.flag_discrete_vs_exponential = 1;
 parameter_gen.T_ini = T_ini;
 parameter_gen.T_max = T_max;
 for ni=0:n_i-1;
@@ -390,6 +390,16 @@ end;%if flag_disp;
 %%%%%%%%;
 % recover all. ;
 %%%%%%%%;
+X_est_ixt___ = X_tru_ixt___;
+a_est_xa__ = a_tru_xa__;
+A_est_xx__ = A_tru_xx__;
+B_est_omega = B_tru_omega;
+B_est_l0 = B_tru_l0;
+B_est_l1 = B_tru_l1;
+C_est_omega = C_tru_omega;
+C_est_l0 = C_tru_l0;
+C_est_l1 = C_tru_l1;
+%%%%;
 X_est_ixt___=[];
 a_est_xa__=[];
 A_est_xx__=[];
@@ -404,7 +414,11 @@ parameter_est = struct('type','parameter_est');
 parameter_est.tolerance_master = tolerance_master;
 parameter_est.flag_verbose = flag_verbose-1;
 parameter_est.str_update = 'CtCn_xx__ BtBn_xx__ a_xa__ A_xx__ X_xt__';
-n_iteration = 6;
+%parameter_est.str_update = 'BtBn_xx__ X_xt__';
+n_iteration = 12;
+nlp_tXYC_l_ = zeros(n_iteration,1);
+nlp_dtZPB_l_ = zeros(n_iteration,1);
+nlp_dtXaAB_sum_l_ = zeros(n_iteration,1);
 nlp_tXaABYC_sum_l_ = zeros(n_iteration,1);
 for niteration=0:n_iteration-1;
 [ ...
@@ -446,9 +460,15 @@ PAD_nlp_itXaABYC_update_0( ...
 ,C_est_l1 ...
 );
 if flag_verbose;
-disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_sum_pre %0.6f --> nlp_tXaABYC_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_sum_pre,parameter_est.nlp_tXaABYC_sum_pos));
+[~,BtBn_est_xx__] =PAD_BtBn_0([],B_est_omega,B_est_l0,B_est_l1);
+[~,CtCn_est_xx__] =PAD_BtBn_0([],C_est_omega,C_est_l0,C_est_l1);
+disp(sprintf(' %% B_omega %+0.2f, B_l0 %+0.2f, B_l1 %+0.2f',B_est_omega,B_est_l0,B_est_l1));
+disp(sprintf(' %% C_omega %+0.2f, C_l0 %+0.2f, C_l1 %+0.2f',C_est_omega,C_est_l0,C_est_l1));
+if isfield(parameter_est,'nlp_tXYC_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXYC_pre %0.6f --> nlp_tXYC_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXYC_pre,parameter_est.nlp_tXYC_pos)); nlp_tXYC_l_(1+niteration) = parameter_est.nlp_tXYC_pos; end;
+if isfield(parameter_est,'nlp_dtZPB_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtZPB_pre %0.6f --> nlp_dtZPB_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtZPB_pre,parameter_est.nlp_dtZPB_pos)); nlp_dtZPB_l_(1+niteration) = parameter_est.nlp_dtZPB_pos; end;
+if isfield(parameter_est,'nlp_dtXaAB_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtXaAB_sum_pre %0.6f --> nlp_dtXaAB_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtXaAB_sum_pre,parameter_est.nlp_dtXaAB_sum_pos)); nlp_dtXaAB_sum_l_(1+niteration) = parameter_est.nlp_dtXaAB_sum_pos; end;
+if isfield(parameter_est,'nlp_tXaABYC_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_sum_pre %0.6f --> nlp_tXaABYC_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_sum_pre,parameter_est.nlp_tXaABYC_sum_pos)); nlp_tXaABYC_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_sum_pos; end;
 end;%if flag_verbose;
-nlp_tXaABYC_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_sum_pos;
 end;%for niteration=0:n_iteration-1;
 %%%%;
 if flag_disp;

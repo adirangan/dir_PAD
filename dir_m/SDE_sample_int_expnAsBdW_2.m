@@ -8,10 +8,12 @@ SDE_sample_int_expnAsBdW_2( ...
 ,B_inv_xx__ ...
 ,tolerance_SDE ...
 );
+%%%%%%%%;
 % samples the function: ;
 % \int_{s=0}^{s=t} exp(-A_xx__ * s) * B_inv_xx__ * dW(s) ;
 % = \int_{s=0}^{s=t} Psi_A_xx__ * exp(-diag(Lambda_A_x_) * s) * Psi_A_inv_xx__ * B_inv_xx__ * dW(s) ;
 % where Psi_A_xx__ * diag(Lambda_A_x_) * Psi_A_inv_xx__ is an eigendecomposition of A_xx__. ;
+%%%%%%%%;
 % Discretizes the total time t into increments dt that are sufficiently small that: ;
 %  | exp(-Lambda_A_x_*dt) - (1-Lambda_A_x_*dt) | ;
 % is (uniformly) less than tolerance_SDE. ;
@@ -22,6 +24,7 @@ SDE_sample_int_expnAsBdW_2( ...
 % == 0.5 * (Lambda_A_x_*dt).^2 ;
 % <= 0.5 * (max(|Lambda_A_x_|)*dt).^2 ;
 % == 0.5 * 2 * tolerance_SDE ;
+%%%%%%%%;
 
 na=0;
 if (nargin<1+na); t=[]; end; na=na+1;
