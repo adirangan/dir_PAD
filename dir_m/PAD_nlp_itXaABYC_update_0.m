@@ -71,9 +71,11 @@ if isempty(parameter); parameter = struct('type','parameter'); end;
 if ~isfield(parameter,'tolerance_master'); parameter.tolerance_master = 1e-2; end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
 if ~isfield(parameter,'str_update'); parameter.str_update = 'CtCn_xx__'; end;
+if ~isfield(parameter,'flag_regularize_eccentricity'); parameter.flag_regularize_eccentricity = 0; end;
 tolerance_master = parameter.tolerance_master;
 flag_verbose = parameter.flag_verbose;
 str_update = parameter.str_update;
+flag_regularize_eccentricity = parameter.flag_regularize_eccentricity;
 
 if flag_verbose; disp(sprintf(' %% str_update: %s',str_update)); end;
 
@@ -108,7 +110,7 @@ Y_all_xt__(:,1+tmp_index_) = Y_ixt___{1+ni};
 nt_sum=nt_sum + n_t_i_(1+ni);
 end;%for ni=0:n_i-1;
 assert(nt_sum==n_t_all);
-f_nlp = @(w0l0l1_) PAD_nlp_tXYC_strip_1(n_x,n_t_all,X_all_xt__,ignore_Y_all_xt__,Y_all_xt__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2)) + PAD_nlp_tXYC_eccentricity_0(n_x,n_t_all,w0l0l1_(1+1),w0l0l1_(1+2));
+f_nlp = @(w0l0l1_) PAD_nlp_tXYC_strip_1(n_x,n_t_all,X_all_xt__,ignore_Y_all_xt__,Y_all_xt__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2)) + flag_regularize_eccentricity*PAD_nlp_tXYC_eccentricity_0(n_x,n_t_all,w0l0l1_(1+1),w0l0l1_(1+2));
 nlp_tXYC_pre = f_nlp([C_omega,C_l0,C_l1]);
 [w0l0l1_opt_,fval_opt] = fminsearch(f_nlp,[C_omega,C_l0,C_l1],optimset('MaxFunEvals',1024));
 C_omega = w0l0l1_opt_(1+0); C_l0 = w0l0l1_opt_(1+1); C_l1 = w0l0l1_opt_(1+2);
@@ -161,7 +163,7 @@ ndt=ndt + n_t_i_(1+ni)-1;
 clear nlp_dtXaAB BtBn_xx__ Q_xt__ P_xt__ dX_xdt__ dQ_xdt__ dP_xdt__ ZX_xdt__ ZQ_xdt__ ZP_xdt__ ;
 end;%for ni=0:n_i-1;
 assert(ndt==n_dt_all);
-f_nlp = @(w0l0l1_) PAD_nlp_tXYC_strip_0(n_x,n_dt_all,ZP_all_xdt__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2)) + PAD_nlp_tXYC_eccentricity_0(n_x,n_dt_all,w0l0l1_(1+1),w0l0l1_(1+2)); ;
+f_nlp = @(w0l0l1_) PAD_nlp_tXYC_strip_0(n_x,n_dt_all,ZP_all_xdt__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2)) + flag_regularize_eccentricity*PAD_nlp_tXYC_eccentricity_0(n_x,n_dt_all,w0l0l1_(1+1),w0l0l1_(1+2)); ;
 nlp_dtZPB_pre = f_nlp([B_omega,B_l0,B_l1]);
 [w0l0l1_opt_,fval_opt] = fminsearch(f_nlp,[B_omega,B_l0,B_l1],optimset('MaxFunEvals',1024));
 B_omega = w0l0l1_opt_(1+0); B_l0 = w0l0l1_opt_(1+1); B_l1 = w0l0l1_opt_(1+2);
@@ -261,6 +263,7 @@ end;%if ~isempty(strfind(str_update,'a_xa_')) | ~isempty(strfind(str_update,'A_x
 
 if ~isempty(strfind(str_update,'X_xt__'));
 %%%%%%%%;
+nlp_tXaABYC_integrated_sum_pre=0;
 nlp_tXaABYC_sum_pre = 0;
 for ni=0:n_i-1;
 n_t = n_t_i_(1+ni);
@@ -270,6 +273,8 @@ ignore_Y_xt__ = ignore_Y_ixt___{1+ni};
 Y_xt__ = Y_ixt___{1+ni};
 [ ...
  parameter ...
+,nlp_tXaABYC_integrated ...
+,X_opt_xt__ ...
 ,nlp_tXaABYC ...
 ,nlp_dtXaAB ...
 ,nlp_tXYC ...
@@ -296,16 +301,14 @@ PAD_nlp_tXaABYC_0( ...
 ,C_l0 ...
 ,C_l1 ...
 );
+nlp_tXaABYC_integrated_sum_pre = nlp_tXaABYC_integrated_sum_pre + nlp_tXaABYC_integrated;
 nlp_tXaABYC_sum_pre = nlp_tXaABYC_sum_pre + nlp_tXaABYC;
-tmp_RHS_xt_ = reshape(nlp_dtXaAB_dX_xt__ + nlp_tXYC_dX_xt__,[n_x*n_t,1]);
-tmp_LHS_xtxt__ = nlp_dtXaAB_dX_xtxt__ + nlp_tXYC_dX_xtxt__;
-%X_opt_xt__ = -reshape(pinv(tmp_LHS_xtxt__,tolerance_master)*tmp_RHS_xt_,[n_x,n_t]); %<-- not supported. ;
-X_opt_xt__ = -reshape(tmp_LHS_xtxt__\tmp_RHS_xt_,[n_x,n_t]);
 X_ixt___{1+ni} = X_opt_xt__;
-clear n_t t_t_ X_xt__ ignore_Y_xt__ Y_xt__ tmp_RHS_xt_ tmp_LHS_xt_ X_opt_xt__ ;
-clear nlp_tXaABYC nlp_dtXaAB nlp_tXYC nlp_dtXaAB_dX_xt__ nlp_dtXaAB_dX_xtxt__ nlp_tXYC_dX_xt__ nlp_tXYC_dX_xtxt__ ;
+clear n_t t_t_ X_xt__ ignore_Y_xt__ Y_xt__ X_opt_xt__ ;
+clear nlp_tXaABYC nlp_tXaABYC_integrated nlp_dtXaAB nlp_tXYC nlp_dtXaAB_dX_xt__ nlp_dtXaAB_dX_xtxt__ nlp_tXYC_dX_xt__ nlp_tXYC_dX_xtxt__ ;
 end;%for ni=0:n_i-1;
 %%%%;
+nlp_tXaABYC_integrated_sum_pos = 0;
 nlp_tXaABYC_sum_pos = 0;
 for ni=0:n_i-1;
 n_t = n_t_i_(1+ni);
@@ -315,6 +318,8 @@ ignore_Y_xt__ = ignore_Y_ixt___{1+ni};
 Y_xt__ = Y_ixt___{1+ni};
 [ ...
  parameter ...
+,nlp_tXaABYC_integrated ...
+,X_opt_xt__ ...
 ,nlp_tXaABYC ...
 ] = ...
 PAD_nlp_tXaABYC_0( ...
@@ -335,13 +340,16 @@ PAD_nlp_tXaABYC_0( ...
 ,C_l0 ...
 ,C_l1 ...
 );
+nlp_tXaABYC_integrated_sum_pos = nlp_tXaABYC_integrated_sum_pos + nlp_tXaABYC_integrated;
 nlp_tXaABYC_sum_pos = nlp_tXaABYC_sum_pos + nlp_tXaABYC;
-clear n_t t_t_ X_xt__ ignore_Y_xt__ Y_xt__ ;
-clear nlp_tXaABYC ;
+clear n_t t_t_ X_xt__ ignore_Y_xt__ Y_xt__ X_opt_xt__ ;
+clear nlp_tXaABYC nlp_tXaABYC_integrated ;
 end;%for ni=0:n_i-1;
 %%%%;
 parameter.nlp_tXaABYC_sum_pre = nlp_tXaABYC_sum_pre;
 parameter.nlp_tXaABYC_sum_pos = nlp_tXaABYC_sum_pos;
+parameter.nlp_tXaABYC_integrated_sum_pre = nlp_tXaABYC_integrated_sum_pre;
+parameter.nlp_tXaABYC_integrated_sum_pos = nlp_tXaABYC_integrated_sum_pos;
 %%%%%%%%;
 end;%if ~isempty(strfind(str_update,'X_xt__'));
 

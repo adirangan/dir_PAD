@@ -1,6 +1,8 @@
 function ...
 [ ...
  parameter ...
+,nlp_tXaABYC_integrated ...
+,X_opt_xt__ ...
 ,nlp_tXaABYC ...
 ,nlp_dtXaAB ...
 ,nlp_tXYC ...
@@ -61,8 +63,11 @@ A_xx__ = 2*randn(n_x,n_x);
 B_omega = pi/7 ; B_l0 = 1*randn(); B_l1 = 1*randn();
 C_omega = pi/5 ; C_l0 = 1*randn(); C_l1 = 1*randn();
 parameter = struct('type','parameter');
+parameter.flag_verbose = 1;
 [ ...
  parameter ...
+,nlp_tXaABYC_integrated ...
+,X_opt_xt__ ...
 ,nlp_tXaABYC ...
 ,nlp_dtXaAB ...
 ,nlp_tXYC ...
@@ -99,9 +104,11 @@ PAD_nlp_tXaABYC_0( ...
 ,C_l0 ...
 ,C_l1 ...
 );
+disp(sprintf(' %% nlp_tXaABYC_integrated: %f',nlp_tXaABYC_integrated));
 disp(sprintf(' %% nlp_tXaABYC: %f',nlp_tXaABYC));
 disp(sprintf(' %% nlp_dtXaAB: %f',nlp_dtXaAB));
 disp(sprintf(' %% nlp_tXYC: %f',nlp_tXYC));
+parameter.flag_verbose=0;
 %%%%;
 tmp_eps = fnorm(X_xt__)*1e-4;
 n_test = 16;
@@ -114,6 +121,8 @@ dX_xt__ = randn(n_x,n_t); dX_xt__ = dX_xt__/fnorm(dX_xt__);
 tmp_X_xt__ = X_xt__ + tmp_eps*dX_xt__;
 [ ...
  ~ ...
+,nlp_tXaABYC_integrated_pos ...
+,~ ...
 ,nlp_tXaABYC_pos ...
 ,nlp_dtXaAB_pos ...
 ,nlp_tXYC_pos ...
@@ -139,6 +148,8 @@ PAD_nlp_tXaABYC_0( ...
 tmp_X_xt__ = X_xt__ - tmp_eps*dX_xt__;
 [ ...
  ~ ...
+,nlp_tXaABYC_integrated_neg ...
+,~ ...
 ,nlp_tXaABYC_neg ...
 ,nlp_dtXaAB_neg ...
 ,nlp_tXYC_neg ...
@@ -178,6 +189,7 @@ tmp_eps = fnorm(X_opt_xt__)*1e-4;
 n_test = 16;
 scan_max = 0.1;
 n_scan = 8+1; eps_s_ = scan_max*transpose(linspace(-1,+1,n_scan));
+nlp_tXaABYC_integrated_sl__ = zeros(n_scan,n_test);
 nlp_tXaABYC_sl__ = zeros(n_scan,n_test);
 for ntest=0:n_test-1;
 dX_xt__ = randn(n_x,n_t); dX_xt__ = dX_xt__/fnorm(dX_xt__);
@@ -186,6 +198,8 @@ tmp_eps = eps_s_(1+nscan);
 tmp_X_xt__ = X_opt_xt__ + tmp_eps*fnorm(X_opt_xt__)*dX_xt__;
 [ ...
  ~ ...
+,nlp_tXaABYC_integrated_sl__(1+nscan,1+ntest) ...
+,~ ...
 ,nlp_tXaABYC_sl__(1+nscan,1+ntest) ...
 ] = ...
 PAD_nlp_tXaABYC_0( ...
@@ -265,7 +279,10 @@ if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
 tolerance_master = parameter.tolerance_master;
 flag_verbose = parameter.flag_verbose;
 
+if flag_verbose; disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
+
 %%%%;
+tmp_t = tic();
 [ ...
  nlp_tXaABYC ...
 ,nlp_dtXaAB ...
@@ -306,6 +323,8 @@ PAD_nlp_tXaABYC_strip_0( ...
 ,ZQ_xdt__ ...
 ,ZP_xdt__ ...
 );
+tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% PAD_nlp_tXaABYC_strip_0: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'PAD_nlp_tXaABYC_strip_0',tmp_t,1,n_x*n_a*n_t);
 %%%%;
 [ ...
  ~ ...
@@ -331,6 +350,8 @@ PAD_BtBn_0( ...
 
 %%%%%%%%%%%%%%%%;
 if (n_t<=1);
+nlp_tXaABYC_integrated = 0;
+X_opt_xt__ = Y_xt__;
 nlp_tXaABYC = 0;
 nlp_dtXaAB = 0;
 nlp_tXYC = 0;
@@ -345,15 +366,71 @@ end;%if (n_t<=1);
 if (n_t> 1);
 %%%%%%%%%%%%%%%%;
 
-[Z2_base_0,l2_stretch_0] = PAD_missing_2d_integral_helper_0(0,C_omega,C_l0,C_l1); %<-- ignore XY_(1+0) ;
-[Z2_base_1,l2_stretch_1] = PAD_missing_2d_integral_helper_0(1,C_omega,C_l0,C_l1); %<-- ignore XY_(1+1) ;
-if isempty(ignore_Y_xt__); ignore_Y_xt__ = ~isfinite(Y_xt__); end;%if isempty(ignore_Y_xt__); 
 XY_xt__ = Y_xt__ - X_xt__;
 
+if isempty(ignore_Y_xt__); ignore_Y_xt__ = ~isfinite(Y_xt__); end;%if isempty(ignore_Y_xt__); 
+ignore_Y_sum_t_ = sum(ignore_Y_xt__,1);
+index_use_01_t_ = efind(ignore_Y_sum_t_==0); n_01 = numel(index_use_01_t_);
+index_use_0_t_ = efind( (ignore_Y_sum_t_==1) & (ignore_Y_xt__(1+1,:)==1) ); n_0 = numel(index_use_0_t_); %<-- use 0 and ignore 1. ;
+index_use_1_t_ = efind( (ignore_Y_sum_t_==1) & (ignore_Y_xt__(1+0,:)==1) ); n_1 = numel(index_use_1_t_); %<-- use 1 and ignore 0. ;
+[Z2_base_0,l2_stretch_0] = PAD_missing_2d_integral_helper_0(0,C_omega,C_l0,C_l1); %<-- ignore XY_(1+0) ;
+[Z2_base_1,l2_stretch_1] = PAD_missing_2d_integral_helper_0(1,C_omega,C_l0,C_l1); %<-- ignore XY_(1+1) ;
+tmp_d_01 = + 0.5*n_x*log(2*pi) - 0.5*(C_l0 + C_l1); %<-- use both. ;
+tmp_d_0  = + 0.5*  1*log(2*pi) - 0.5*(C_l0 + C_l1) + 0.5*log(l2_stretch_1); %<-- ignore 1. ;
+tmp_d_1  = + 0.5*  1*log(2*pi) - 0.5*(C_l0 + C_l1) + 0.5*log(l2_stretch_0); %<-- ignore 0. ;
+
+%%%%;
+tmp_t = tic();
+%%%%;
+nlp_tXYC_dX_xt__ = zeros(n_x,n_t);
+nlp_tXYC_dX_xt__(:,1+index_use_01_t_) = -CtCn_xx__*Y_xt__(:,1+index_use_01_t_);
+nlp_tXYC_dX_xt__(1+0,1+index_use_0_t_) = -Z2_base_1*Y_xt__(1+0,1+index_use_0_t_);
+nlp_tXYC_dX_xt__(1+1,1+index_use_1_t_) = -Z2_base_0*Y_xt__(1+1,1+index_use_1_t_);
+%%%%;
+tmp_n_nz = 4*n_01 + 1*n_0 + 1*n_1;
+tmp_index_row_nz_ = zeros(tmp_n_nz,1);
+tmp_index_col_nz_ = zeros(tmp_n_nz,1);
+tmp_val_nz_ = zeros(tmp_n_nz,1);
+tmp_nnz=0;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_01-1]) = 0+index_use_01_t_*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_01-1]) = 0+index_use_01_t_*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_01-1]) = +CtCn_xx__(1+0,1+0);
+tmp_nnz = tmp_nnz+n_01;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_01-1]) = 0+index_use_01_t_*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_01-1]) = 1+index_use_01_t_*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_01-1]) = +CtCn_xx__(1+0,1+1);
+tmp_nnz = tmp_nnz+n_01;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_01-1]) = 1+index_use_01_t_*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_01-1]) = 0+index_use_01_t_*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_01-1]) = +CtCn_xx__(1+1,1+0);
+tmp_nnz = tmp_nnz+n_01;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_01-1]) = 1+index_use_01_t_*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_01-1]) = 1+index_use_01_t_*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_01-1]) = +CtCn_xx__(1+1,1+1);
+tmp_nnz = tmp_nnz+n_01;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_0-1]) = 0+index_use_0_t_*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_0-1]) = 0+index_use_0_t_*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_0-1]) = +Z2_base_1;
+tmp_nnz = tmp_nnz + n_0;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_1-1]) = 1+index_use_1_t_*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_1-1]) = 1+index_use_1_t_*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_1-1]) = +Z2_base_0;
+tmp_nnz = tmp_nnz + n_1;
+nlp_tXYC_dX_xtxt__ = sparse(1+tmp_index_row_nz_,1+tmp_index_col_nz_,tmp_val_nz_,n_x*n_t,n_x*n_t);
+%%%%;
+tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_tXYC_dX_xtxt__: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'nlp_tXYC_dX_xtxt__',tmp_t,1,n_x*n_t);
+%%%%;
+
+flag_check=0;
+if flag_check;
 %%%%%%%%;
 % vectorize this later. ;
 %%%%%%%%;
+nlp_tXYC_dX_bkp_xt__ = nlp_tXYC_dX_xt__;
+nlp_tXYC_dX_bkp_xtxt__ = nlp_tXYC_dX_xtxt__;
 %%%%;
+tmp_t = tic();
 nlp_tXYC_dX_xt__ = sparse(n_x,n_t);
 nlp_tXYC_dX_xtxt__ = sparse(n_x*n_t,n_x*n_t);
 tmp_d = + 0.5*n_x*log(2*pi) - 0.5*(C_l0 + C_l1);
@@ -379,7 +456,13 @@ nlp_tXYC_dX_xtxt__(1+1+nt*n_x,1+1+nt*n_x) = +Z2_base_0;
 end;%if (ignore_Y_x_(1+0)==1) & (ignore_Y_x_(1+1)==0) ;
 end;%else;
 end;%for nt=0:n_t-1;
+tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_tXYC_dX_xtxt__ (slow): %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'nlp_tXYC_dX_xtxt__ (slow)',tmp_t,1,n_x*n_t);
 %%%%;
+disp(sprintf(' %% nlp_tXYC_dX_bkp_xt__ vs nlp_tXYC_dX_xt__: %0.16f',fnorm(nlp_tXYC_dX_bkp_xt__-nlp_tXYC_dX_xt__)/fnorm(nlp_tXYC_dX_bkp_xt__)));
+disp(sprintf(' %% nlp_tXYC_dX_bkp_xtxt__ vs nlp_tXYC_dX_xtxt__: %0.16f',fnorm(nlp_tXYC_dX_bkp_xtxt__-nlp_tXYC_dX_xtxt__)/fnorm(nlp_tXYC_dX_bkp_xtxt__)));
+%%%%%%%%;
+end;%if flag_check;
 
 %%%%;
 dt_dt_ = diff(t_t_); n_dt = numel(dt_dt_);
@@ -387,9 +470,115 @@ M_xx__ = BtBn_xx__;
 L_xx__ = transpose(A_xx__)*BtBn_xx__;
 R_xx__ = BtBn_xx__*A_xx__;
 G_xx__ = transpose(A_xx__)*BtBn_xx__*A_xx__;
+%%%%;
+
+%%%%;
+tmp_t = tic();
+%%%%;
+Q_pos_xdt__ = Q_xt__(:,2:n_t-0);
+Q_pre_xdt__ = Q_xt__(:,1:n_t-1);
+MdQ_xdt__ = bsxfun(@rdivide,M_xx__*(-dQ_xdt__),reshape(max(1e-12,dt_dt_),[1,n_dt]));
+LQ_xdt__ = L_xx__*(-dQ_xdt__);
+RQ_xdt__ = R_xx__*(-Q_pre_xdt__);
+GQ_xdt__ = bsxfun(@times,G_xx__*(-Q_pre_xdt__),reshape(max(1e-12,dt_dt_),[1,n_dt]));
+nlp_dtXaAB_dX_bot_xt__ = zeros(n_x,n_t);
+nlp_dtXaAB_dX_bot_xt__(:,1:n_t-1) = - MdQ_xdt__ - LQ_xdt__ + RQ_xdt__ + GQ_xdt__;
+nlp_dtXaAB_dX_top_xt__ = zeros(n_x,n_t);
+nlp_dtXaAB_dX_top_xt__(:,2:n_t-0) = + MdQ_xdt__ - RQ_xdt__;
+%%%%;
+tmp_n_nz = n_dt*8;
+tmp_index_row_nz_ = zeros(tmp_n_nz,1);
+tmp_index_col_nz_ = zeros(tmp_n_nz,1);
+tmp_val_nz_ = zeros(tmp_n_nz,1);
+tmp_nnz=0;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+0,1+0)./max(1e-12,dt_dt_) - L_xx__(1+0,1+0);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+0,1+1)./max(1e-12,dt_dt_) - L_xx__(1+0,1+1);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+1,1+0)./max(1e-12,dt_dt_) - L_xx__(1+1,1+0);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+1,1+1)./max(1e-12,dt_dt_) - L_xx__(1+1,1+1);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+0,1+0)./max(1e-12,dt_dt_) + L_xx__(1+0,1+0) + R_xx__(1+0,1+0) + G_xx__(1+0,1+0).*max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+0,1+1)./max(1e-12,dt_dt_) + L_xx__(1+0,1+1) + R_xx__(1+0,1+1) + G_xx__(1+0,1+1).*max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+1,1+0)./max(1e-12,dt_dt_) + L_xx__(1+1,1+0) + R_xx__(1+1,1+0) + G_xx__(1+1,1+0).*max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+1,1+1)./max(1e-12,dt_dt_) + L_xx__(1+1,1+1) + R_xx__(1+1,1+1) + G_xx__(1+1,1+1).*max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+nlp_dtXaAB_dX_bot_xtxt__ = sparse(1+tmp_index_row_nz_,1+tmp_index_col_nz_,tmp_val_nz_,n_x*n_t,n_x*n_t);
+%%%%;
+tmp_n_nz = n_dt*8;
+tmp_index_row_nz_ = zeros(tmp_n_nz,1);
+tmp_index_col_nz_ = zeros(tmp_n_nz,1);
+tmp_val_nz_ = zeros(tmp_n_nz,1);
+tmp_nnz=0;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+0,1+0)./max(1e-12,dt_dt_) - R_xx__(1+0,1+0);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+0,1+1)./max(1e-12,dt_dt_) - R_xx__(1+0,1+1);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+1,1+0)./max(1e-12,dt_dt_) - R_xx__(1+1,1+0);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[0:n_dt-1]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = - M_xx__(1+1,1+1)./max(1e-12,dt_dt_) - R_xx__(1+1,1+1);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+0,1+0)./max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+0,1+1)./max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 0+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+1,1+0)./max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+tmp_index_row_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_index_col_nz_(1+tmp_nnz+[0:n_dt-1]) = 1+[1:n_dt-0]*n_x;
+tmp_val_nz_(1+tmp_nnz+[0:n_dt-1]) = + M_xx__(1+1,1+1)./max(1e-12,dt_dt_);
+tmp_nnz = tmp_nnz + n_dt;
+nlp_dtXaAB_dX_top_xtxt__ = sparse(1+tmp_index_row_nz_,1+tmp_index_col_nz_,tmp_val_nz_,n_x*n_t,n_x*n_t);
+%%%%;
+%%%%;
+tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_dtXaAB_dX_xtxt__: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'nlp_dtXaAB_dX_xtxt__',tmp_t,1,n_x*n_t);
+%%%%;
+
+flag_check=0;
+if flag_check;
 %%%%%%%%;
 % vectorize this later. ;
 %%%%%%%%;
+nlp_dtXaAB_dX_bot_bkp_xt__ = nlp_dtXaAB_dX_bot_xt__;
+nlp_dtXaAB_dX_top_bkp_xt__ = nlp_dtXaAB_dX_top_xt__;
+nlp_dtXaAB_dX_bot_bkp_xtxt__ = nlp_dtXaAB_dX_bot_xtxt__;
+nlp_dtXaAB_dX_top_bkp_xtxt__ = nlp_dtXaAB_dX_top_xtxt__;
+tmp_t = tic();
 nlp_dtXaAB_dX_bot_xt__ = sparse(n_x,n_t);
 nlp_dtXaAB_dX_bot_xtxt__ = sparse(n_x*n_t,n_x*n_t);
 nlp_dtXaAB_dX_top_xt__ = sparse(n_x,n_t);
@@ -408,7 +597,7 @@ nlp_dtXaAB_dX_bot_xtxt__(1+0+nt_out*n_x,1+0+nt_0in*n_x) = - M_xx__(1+0,1+0)/tmp_
 nlp_dtXaAB_dX_bot_xtxt__(1+0+nt_out*n_x,1+1+nt_0in*n_x) = - M_xx__(1+0,1+1)/tmp_dt - L_xx__(1+0,1+1) ;
 nlp_dtXaAB_dX_bot_xtxt__(1+1+nt_out*n_x,1+0+nt_0in*n_x) = - M_xx__(1+1,1+0)/tmp_dt - L_xx__(1+1,1+0) ;
 nlp_dtXaAB_dX_bot_xtxt__(1+1+nt_out*n_x,1+1+nt_0in*n_x) = - M_xx__(1+1,1+1)/tmp_dt - L_xx__(1+1,1+1) ;
-pnt_out = nt; nt_0in = nt_out + 0;
+nt_out = nt; nt_0in = nt_out + 0;
 nlp_dtXaAB_dX_bot_xtxt__(1+0+nt_out*n_x,1+0+nt_0in*n_x) = + M_xx__(1+0,1+0)/tmp_dt + L_xx__(1+0,1+0) + R_xx__(1+0,1+0) + tmp_dt*G_xx__(1+0,1+0) ;
 nlp_dtXaAB_dX_bot_xtxt__(1+0+nt_out*n_x,1+1+nt_0in*n_x) = + M_xx__(1+0,1+1)/tmp_dt + L_xx__(1+0,1+1) + R_xx__(1+0,1+1) + tmp_dt*G_xx__(1+0,1+1) ;
 nlp_dtXaAB_dX_bot_xtxt__(1+1+nt_out*n_x,1+0+nt_0in*n_x) = + M_xx__(1+1,1+0)/tmp_dt + L_xx__(1+1,1+0) + R_xx__(1+1,1+0) + tmp_dt*G_xx__(1+1,1+0) ;
@@ -434,13 +623,37 @@ nlp_dtXaAB_dX_top_xtxt__(1+1+nt_out*n_x,1+0+nt_0in*n_x) = + M_xx__(1+1,1+0)/tmp_
 nlp_dtXaAB_dX_top_xtxt__(1+1+nt_out*n_x,1+1+nt_0in*n_x) = + M_xx__(1+1,1+1)/tmp_dt ;
 end;%if (nt> 0);
 end;%for nt=0:n_t-1;
+tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_dtXaAB_dX_xtxt__ (slow): %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'nlp_dtXaAB_dX_xtxt__ (slow)',tmp_t,1,n_x*n_t);
+%%%%;
+disp(sprintf(' %% nlp_dtXaAB_dX_bot_bkp_xt__ vs nlp_dtXaAB_dX_bot_xt__: %0.16f',fnorm(nlp_dtXaAB_dX_bot_bkp_xt__-nlp_dtXaAB_dX_bot_xt__)/fnorm(nlp_dtXaAB_dX_bot_bkp_xt__)));
+disp(sprintf(' %% nlp_dtXaAB_dX_top_bkp_xt__ vs nlp_dtXaAB_dX_top_xt__: %0.16f',fnorm(nlp_dtXaAB_dX_top_bkp_xt__-nlp_dtXaAB_dX_top_xt__)/fnorm(nlp_dtXaAB_dX_top_bkp_xt__)));
+disp(sprintf(' %% nlp_dtXaAB_dX_bot_bkp_xtxt__ vs nlp_dtXaAB_dX_bot_xtxt__: %0.16f',fnorm(nlp_dtXaAB_dX_bot_bkp_xtxt__-nlp_dtXaAB_dX_bot_xtxt__)/fnorm(nlp_dtXaAB_dX_bot_bkp_xtxt__)));
+disp(sprintf(' %% nlp_dtXaAB_dX_top_bkp_xtxt__ vs nlp_dtXaAB_dX_top_xtxt__: %0.16f',fnorm(nlp_dtXaAB_dX_top_bkp_xtxt__-nlp_dtXaAB_dX_top_xtxt__)/fnorm(nlp_dtXaAB_dX_top_bkp_xtxt__)));
+%%%%%%%%;
+end;%if flag_check;
+
 nlp_dtXaAB_dX_xt__ = nlp_dtXaAB_dX_bot_xt__ + nlp_dtXaAB_dX_top_xt__;
 nlp_dtXaAB_dX_xtxt__ = nlp_dtXaAB_dX_bot_xtxt__ + nlp_dtXaAB_dX_top_xtxt__;
+
+%%%%;
+tmp_RHS_xt_ = reshape(nlp_dtXaAB_dX_xt__,[n_x*n_t,1]) + reshape(nlp_tXYC_dX_xt__,[n_x*n_t,1]) ;
+tmp_LHS_xtxt__ = nlp_dtXaAB_dX_xtxt__ + nlp_tXYC_dX_xtxt__ ;
+%X_opt_xt__ = -reshape(pinv(tmp_LHS_xtxt__,tolerance_master)*tmp_RHS_xt_,[n_x,n_t]); %<-- sparse. ;
+X_opt_xt__ = -reshape(tmp_LHS_xtxt__\tmp_RHS_xt_,[n_x,n_t]);
+tmp_t = tic();
+[tmp_LHS_l_xtxt__,tmp_LHS_u_xtxt__,tmp_LHS_t_xtxt__] = lu(tmp_LHS_xtxt__);
+tmp_LHS_ldetu = sum(log(diag(tmp_LHS_u_xtxt__)));
+tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% tmp_LHS_ldetu: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'tmp_LHS_ldetu',tmp_t,1,nnz(tmp_LHS_xtxt__));
+nlp_tXaABYC_integrated = nlp_dtXaAB + nlp_tXYC - 0.5*n_t*n_x*log(2*pi) + 0.5*tmp_LHS_ldetu; %<-- multidimensional laplace integral. ;
+%%%%;
 
 %%%%%%%%%%%%%%%%;
 end;%if (n_t> 1);
 %%%%%%%%%%%%%%%%;
 
+if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 
 
 

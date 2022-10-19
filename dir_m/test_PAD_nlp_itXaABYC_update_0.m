@@ -342,6 +342,7 @@ PAD_nlp_itXaABYC_update_0( ...
 %%%%;
 if flag_verbose;
 disp(sprintf(' %% nlp_tXaABYC_sum_pre %0.6f --> nlp_tXaABYC_sum_pos %0.6f',parameter_est.nlp_tXaABYC_sum_pre,parameter_est.nlp_tXaABYC_sum_pos));
+disp(sprintf(' %% nlp_tXaABYC_integrated_sum_pre %0.6f --> nlp_tXaABYC_integrated_sum_pos %0.6f',parameter_est.nlp_tXaABYC_integrated_sum_pre,parameter_est.nlp_tXaABYC_integrated_sum_pos));
 end;%if flag_verbose;
 %%%%;
 if flag_disp;
@@ -468,8 +469,11 @@ if isfield(parameter_est,'nlp_tXYC_pos'); disp(sprintf(' %% niteration %d/%d: nl
 if isfield(parameter_est,'nlp_dtZPB_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtZPB_pre %0.6f --> nlp_dtZPB_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtZPB_pre,parameter_est.nlp_dtZPB_pos)); nlp_dtZPB_l_(1+niteration) = parameter_est.nlp_dtZPB_pos; end;
 if isfield(parameter_est,'nlp_dtXaAB_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtXaAB_sum_pre %0.6f --> nlp_dtXaAB_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtXaAB_sum_pre,parameter_est.nlp_dtXaAB_sum_pos)); nlp_dtXaAB_sum_l_(1+niteration) = parameter_est.nlp_dtXaAB_sum_pos; end;
 if isfield(parameter_est,'nlp_tXaABYC_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_sum_pre %0.6f --> nlp_tXaABYC_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_sum_pre,parameter_est.nlp_tXaABYC_sum_pos)); nlp_tXaABYC_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_sum_pos; end;
+if isfield(parameter_est,'nlp_tXaABYC_integrated_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_integrated_sum_pre %0.6f --> nlp_tXaABYC_integrated_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_integrated_sum_pre,parameter_est.nlp_tXaABYC_integrated_sum_pos)); nlp_tXaABYC_integrated_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_integrated_sum_pos; end;
 end;%if flag_verbose;
 end;%for niteration=0:n_iteration-1;
+%%%%;
+
 %%%%;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figbig;figbeach();

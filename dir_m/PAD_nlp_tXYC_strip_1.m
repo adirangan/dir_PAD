@@ -14,6 +14,35 @@ PAD_nlp_tXYC_strip_1( ...
 ,C_l1 ...
 );
 
+if nargin<1;
+rng(0);
+n_x = 2; n_t = 1024*8;
+X_xt__ = randn(n_x,n_t);
+ignore_Y_xt__ = randn(n_x,n_t)>0.5;
+Y_xt__ = randn(n_x,n_t);
+C_omega = randn();
+C_l0 = randn();
+C_l1 = randn();
+tmp_t = tic();
+[ ...
+ nlp_tXYC ...
+,CtCn_xx__ ...
+] = ...
+PAD_nlp_tXYC_strip_1( ...
+ n_x ...
+,n_t ...
+,X_xt__ ...
+,ignore_Y_xt__ ...
+,Y_xt__ ...
+,C_omega ...
+,C_l0 ...
+,C_l1 ...
+);
+disp(sprintf(' %% nlp_tXYC: %0.6f',nlp_tXYC));
+tmp_t = toc(tmp_t); disp(sprintf(' %% PAD_nlp_tXYC_strip_1: %0.6fs',tmp_t));
+disp(sprintf(' %% returning')); return;
+end;%if nargin<1;
+
 na=0;
 if (nargin<1+na); n_x=[]; end; na=na+1;
 if (nargin<1+na); n_t=[]; end; na=na+1;
@@ -23,6 +52,8 @@ if (nargin<1+na); Y_xt__=[]; end; na=na+1;
 if (nargin<1+na); C_omega=[]; end; na=na+1;
 if (nargin<1+na); C_l0=[]; end; na=na+1;
 if (nargin<1+na); C_l1=[]; end; na=na+1;
+
+XY_xt__ = Y_xt__ - X_xt__;
 
 [ ...
  ~ ...
@@ -34,12 +65,53 @@ PAD_BtBn_0( ...
 ,C_l0 ...
 ,C_l1 ...
 );
-[Z2_base_0,l2_stretch_0] = PAD_missing_2d_integral_helper_0(0,C_omega,C_l0,C_l1); %<-- ignore XY_(1+0) ;
-[Z2_base_1,l2_stretch_1] = PAD_missing_2d_integral_helper_0(1,C_omega,C_l0,C_l1); %<-- ignore XY_(1+1) ;
 
 if isempty(ignore_Y_xt__); ignore_Y_xt__ = ~isfinite(Y_xt__); end;%if isempty(ignore_Y_xt__); 
+ignore_Y_sum_t_ = sum(ignore_Y_xt__,1);
+use_Y_01_t_ = ~ignore_Y_sum_t_; n_01 = sum(use_Y_01_t_);
+use_Y_0_t_ = (ignore_Y_sum_t_ & ~ignore_Y_xt__(1+0,:)); n_0 = sum(use_Y_0_t_);
+use_Y_1_t_ = (ignore_Y_sum_t_ & ~ignore_Y_xt__(1+1,:)); n_1 = sum(use_Y_1_t_);
+[Z2_base_0,l2_stretch_0] = PAD_missing_2d_integral_helper_0(0,C_omega,C_l0,C_l1); %<-- ignore XY_(1+0) ;
+[Z2_base_1,l2_stretch_1] = PAD_missing_2d_integral_helper_0(1,C_omega,C_l0,C_l1); %<-- ignore XY_(1+1) ;
+tmp_d_01 = + 0.5*n_x*log(2*pi) - 0.5*(C_l0 + C_l1); %<-- use both. ;
+tmp_d_0  = + 0.5*  1*log(2*pi) - 0.5*(C_l0 + C_l1) + 0.5*log(l2_stretch_1); %<-- ignore 1. ;
+tmp_d_1  = + 0.5*  1*log(2*pi) - 0.5*(C_l0 + C_l1) + 0.5*log(l2_stretch_0); %<-- ignore 0. ;
+nlp_tXYC = ...
++ 0.5*sum( (CtCn_xx__*(XY_xt__.*repmat(use_Y_01_t_,[n_x,1]))).*(XY_xt__.*repmat(use_Y_01_t_,[n_x,1])) , 'all' ) + n_01*tmp_d_01 ...
++ 0.5*Z2_base_1*sum(XY_xt__(1+0,:).^2 .* use_Y_0_t_) + n_0*tmp_d_0 ...
++ 0.5*Z2_base_0*sum(XY_xt__(1+1,:).^2 .* use_Y_1_t_) + n_1*tmp_d_1 ...
+;
+
+flag_check=0;
+if flag_check;
+nlp_tXYC_bkp = nlp_tXYC;
+index_use_01_t_ = efind(ignore_Y_sum_t_==0); n_01 = numel(index_use_01_t_);
+index_use_0_t_ = efind( (ignore_Y_sum_t_==1) & (ignore_Y_xt__(1+1,:)==1) ); n_0 = numel(index_use_0_t_); %<-- use 0 and ignore 1. ;
+index_use_1_t_ = efind( (ignore_Y_sum_t_==1) & (ignore_Y_xt__(1+0,:)==1) ); n_1 = numel(index_use_1_t_); %<-- use 1 and ignore 0. ;
+nlp_tXYC = 0;
+if (n_01> 0);
+tmp_d = + 0.5*n_x*log(2*pi) - 0.5*(C_l0 + C_l1);
+XY_01_xt__ = XY_xt__(:,1+index_use_01_t_);
+nlp_tXYC = nlp_tXYC + 0.5*sum( (CtCn_xx__*XY_01_xt__).*XY_01_xt__ , 'all' ) + n_01*tmp_d;
+end;%if (n_01> 0);
+if (n_0> 0);
+XY_0_t_ = XY_xt__(1+0,1+index_use_0_t_); %<-- use 0. ;
+tmp_d = + 0.5*  1*log(2*pi) - 0.5*(C_l0 + C_l1) + 0.5*log(l2_stretch_1); %<-- ignore 1. ;
+nlp_tXYC = nlp_tXYC + 0.5*Z2_base_1*sum(XY_0_t_.^2) + n_0*tmp_d; %<-- ignore 1.; 
+end;%if (n_0> 0);
+if (n_1> 0);
+XY_1_t_ = XY_xt__(1+1,1+index_use_1_t_); %<-- use 1. ;
+tmp_d = + 0.5*  1*log(2*pi) - 0.5*(C_l0 + C_l1) + 0.5*log(l2_stretch_0); %<-- ignore 0. ;
+nlp_tXYC = nlp_tXYC + 0.5*Z2_base_0*sum(XY_1_t_.^2) + n_1*tmp_d; %<-- ignore 0. ;
+end;%if (n_1> 0);
+disp(sprintf(' %% nlp_tXYC_old: %0.6f',nlp_tXYC_bkp));
+disp(sprintf(' %% nlp_tXYC_new: %0.6f',nlp_tXYC));
+end;%if flag_check;
+
+flag_check=0;
+if flag_check;
 %%%%;
-XY_xt__ = Y_xt__ - X_xt__;
+nlp_tXYC_bkp = nlp_tXYC;
 %%%%%%%%;
 % vectorize this later. ;
 %%%%%%%%;
@@ -65,7 +137,9 @@ end;%if (ignore_Y_x_(1+0)==1) & (ignore_Y_x_(1+1)==0) ;
 end;%else;
 end;%for nt=0:n_dt-1;
 %%%%;
-
+disp(sprintf(' %% nlp_tXYC_old: %0.6f',nlp_tXYC_bkp));
+disp(sprintf(' %% nlp_tXYC_new: %0.6f',nlp_tXYC));
+end;%if flag_check;
 
 
 
