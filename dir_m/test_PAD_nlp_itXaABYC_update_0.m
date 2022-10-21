@@ -106,7 +106,7 @@ Q_tru_ixt___{1+ni} = Q_tru_xt__;
 P_tru_ixt___{1+ni} = P_tru_xt__;
 X_tru_ixt___{1+ni} = X_tru_xt__;
 Y_tru_ixt___{1+ni} = Y_tru_xt__;
-ignore_Y_tru_ixt___{1+ni} = zeros(n_x,n_t);
+rng(parameter_gen.rseed); ignore_Y_tru_ixt___{1+ni} = rand(n_x,n_t)<0.5;
 clear n_t t_t_ Q_tru_xt__ P_tru_xt__ X_tru_xt__ Y_tru_xt__ R_avg ;
 %%%%;
 end;%for ni=0:n_i-1;
@@ -415,13 +415,116 @@ parameter_est = struct('type','parameter_est');
 parameter_est.tolerance_master = tolerance_master;
 parameter_est.flag_verbose = flag_verbose-1;
 parameter_est.str_update = 'CtCn_xx__ BtBn_xx__ a_xa__ A_xx__ X_xt__';
-%parameter_est.str_update = 'BtBn_xx__ X_xt__';
-n_iteration = 12;
+parameter_est.flag_regularize_eccentricity = 1;
+parameter_est.MaxFunEvals_use = 1024;
+n_iteration = 6;
 nlp_tXYC_l_ = zeros(n_iteration,1);
 nlp_dtZPB_l_ = zeros(n_iteration,1);
 nlp_dtXaAB_sum_l_ = zeros(n_iteration,1);
 nlp_tXaABYC_sum_l_ = zeros(n_iteration,1);
-for niteration=0:n_iteration-1;
+nlp_tXaABYC_integrated_sum_l_ = zeros(n_iteration,1);
+%%%%;
+flag_continue = 1; niteration=0; nlp_tXaABYC_integrated_sum_pos=+Inf;
+while flag_continue;
+nlp_tXaABYC_integrated_sum_pre = nlp_tXaABYC_integrated_sum_pos;
+[ ...
+ parameter_est ...
+,n_i ...
+,n_t_i_ ...
+,t_it__ ...
+,n_x ...
+,X_tmp_ixt___ ...
+,n_a ...
+,a_tmp_xa__ ...
+,A_tmp_xx__ ...
+,B_tmp_omega ...
+,B_tmp_l0 ...
+,B_tmp_l1 ...
+,ignore_Y_tru_ixt____ ...
+,Y_tru_ixt____ ...
+,C_tmp_omega ...
+,C_tmp_l0 ...
+,C_tmp_l1 ...
+] = ...
+PAD_nlp_itXaABYC_update_0( ...
+ parameter_est ...
+,n_i ...
+,n_t_i_ ...
+,t_it__ ...
+,n_x ...
+,X_est_ixt___ ...
+,n_a ...
+,a_est_xa__ ...
+,A_est_xx__ ...
+,B_est_omega ...
+,B_est_l0 ...
+,B_est_l1 ...
+,ignore_Y_tru_ixt___ ...
+,Y_tru_ixt___ ...
+,C_est_omega ...
+,C_est_l0 ...
+,C_est_l1 ...
+);
+%%%%;
+if flag_verbose;
+disp(sprintf(' %% processing niteration %d/%d',niteration,n_iteration));
+[~,BtBn_est_xx__] =PAD_BtBn_0([],B_est_omega,B_est_l0,B_est_l1);
+[~,CtCn_est_xx__] =PAD_BtBn_0([],C_est_omega,C_est_l0,C_est_l1);
+disp(sprintf(' %% B_omega %+0.2f, B_l0 %+0.2f, B_l1 %+0.2f',B_est_omega,B_est_l0,B_est_l1));
+disp(sprintf(' %% C_omega %+0.2f, C_l0 %+0.2f, C_l1 %+0.2f',C_est_omega,C_est_l0,C_est_l1));
+if isfield(parameter_est,'nlp_tXYC_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXYC_pre %0.6f --> nlp_tXYC_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXYC_pre,parameter_est.nlp_tXYC_pos)); nlp_tXYC_l_(1+niteration) = parameter_est.nlp_tXYC_pos; end;
+if isfield(parameter_est,'nlp_dtZPB_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtZPB_pre %0.6f --> nlp_dtZPB_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtZPB_pre,parameter_est.nlp_dtZPB_pos)); nlp_dtZPB_l_(1+niteration) = parameter_est.nlp_dtZPB_pos; end;
+if isfield(parameter_est,'nlp_dtXaAB_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtXaAB_sum_pre %0.6f --> nlp_dtXaAB_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtXaAB_sum_pre,parameter_est.nlp_dtXaAB_sum_pos)); nlp_dtXaAB_sum_l_(1+niteration) = parameter_est.nlp_dtXaAB_sum_pos; end;
+if isfield(parameter_est,'nlp_tXaABYC_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_sum_pre %0.6f --> nlp_tXaABYC_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_sum_pre,parameter_est.nlp_tXaABYC_sum_pos)); nlp_tXaABYC_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_sum_pos; end;
+if isfield(parameter_est,'nlp_tXaABYC_integrated_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_integrated_sum_pre %0.6f --> nlp_tXaABYC_integrated_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_integrated_sum_pre,parameter_est.nlp_tXaABYC_integrated_sum_pos)); nlp_tXaABYC_integrated_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_integrated_sum_pos; end;
+end;%if flag_verbose;
+%%%%;
+flag_continue = 0;
+nlp_tXaABYC_integrated_sum_pos = parameter_est.nlp_tXaABYC_integrated_sum_pos;
+if (nlp_tXaABYC_integrated_sum_pos >= nlp_tXaABYC_integrated_sum_pre);
+if (flag_verbose);
+disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_integrated_sum_pos %0.6f >= nlp_tXaABYC_integrated_sum_pre %0.6f',niteration,n_iteration,nlp_tXaABYC_integrated_sum_pos,nlp_tXaABYC_integrated_sum_pre));
+end;%if (flag_verbose);
+flag_continue = 0; %<-- stopping. ;
+end;%if (nlp_tXaABYC_integrated_sum_pos >= nlp_tXaABYC_integrated_sum_pre);
+if (nlp_tXaABYC_integrated_sum_pos <  nlp_tXaABYC_integrated_sum_pre);
+if (flag_verbose);
+disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_integrated_sum_pos %0.6f <  nlp_tXaABYC_integrated_sum_pre %0.6f',niteration,n_iteration,nlp_tXaABYC_integrated_sum_pos,nlp_tXaABYC_integrated_sum_pre));
+end;%if (flag_verbose);
+X_est_ixt___ = X_tmp_ixt___;
+a_est_xa__ = a_tmp_xa__;
+A_est_xx__ = A_tmp_xx__;
+B_est_omega = B_tmp_omega;
+B_est_l0 = B_tmp_l0;
+B_est_l1 = B_tmp_l1;
+C_est_omega = C_tmp_omega;
+C_est_l0 = C_tmp_l0;
+C_est_l1 = C_tmp_l1;
+flag_continue = 1; %<-- continue. ;
+end;%if (nlp_tXaABYC_integrated_sum_pos <  nlp_tXaABYC_integrated_sum_pre);
+flag_continue = flag_continue & (niteration<n_iteration) ;
+niteration = niteration + 1;
+end;%while flag_continue;
+%%%%;
+if flag_verbose;
+disp(sprintf(' %% stopping at niteration %d/%d',niteration,n_iteration));
+[~,BtBn_est_xx__] =PAD_BtBn_0([],B_est_omega,B_est_l0,B_est_l1);
+[~,CtCn_est_xx__] =PAD_BtBn_0([],C_est_omega,C_est_l0,C_est_l1);
+disp(sprintf(' %% B_omega %+0.2f, B_l0 %+0.2f, B_l1 %+0.2f',B_est_omega,B_est_l0,B_est_l1));
+disp(sprintf(' %% C_omega %+0.2f, C_l0 %+0.2f, C_l1 %+0.2f',C_est_omega,C_est_l0,C_est_l1));
+if isfield(parameter_est,'nlp_tXYC_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXYC_pre %0.6f --> nlp_tXYC_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXYC_pre,parameter_est.nlp_tXYC_pos)); nlp_tXYC_l_(1+niteration) = parameter_est.nlp_tXYC_pos; end;
+if isfield(parameter_est,'nlp_dtZPB_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtZPB_pre %0.6f --> nlp_dtZPB_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtZPB_pre,parameter_est.nlp_dtZPB_pos)); nlp_dtZPB_l_(1+niteration) = parameter_est.nlp_dtZPB_pos; end;
+if isfield(parameter_est,'nlp_dtXaAB_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtXaAB_sum_pre %0.6f --> nlp_dtXaAB_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtXaAB_sum_pre,parameter_est.nlp_dtXaAB_sum_pos)); nlp_dtXaAB_sum_l_(1+niteration) = parameter_est.nlp_dtXaAB_sum_pos; end;
+if isfield(parameter_est,'nlp_tXaABYC_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_sum_pre %0.6f --> nlp_tXaABYC_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_sum_pre,parameter_est.nlp_tXaABYC_sum_pos)); nlp_tXaABYC_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_sum_pos; end;
+if isfield(parameter_est,'nlp_tXaABYC_integrated_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_integrated_sum_pre %0.6f --> nlp_tXaABYC_integrated_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_integrated_sum_pre,parameter_est.nlp_tXaABYC_integrated_sum_pos)); nlp_tXaABYC_integrated_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_integrated_sum_pos; end;
+end;%if flag_verbose;
+%%%%;
+if flag_verbose; disp(sprintf(' %% polishing with simultaneous iteration: ')); end;
+parameter_est.tolerance_master = tolerance_master;
+parameter_est.flag_verbose = flag_verbose-0;
+parameter_est.str_update = 'simultaneous';
+parameter_est.flag_regularize_eccentricity = 0;
+parameter_est.MaxFunEvals_use = 1024*4;
 [ ...
  parameter_est ...
 ,n_i ...
@@ -460,18 +563,11 @@ PAD_nlp_itXaABYC_update_0( ...
 ,C_est_l0 ...
 ,C_est_l1 ...
 );
+%%%%;
 if flag_verbose;
-[~,BtBn_est_xx__] =PAD_BtBn_0([],B_est_omega,B_est_l0,B_est_l1);
-[~,CtCn_est_xx__] =PAD_BtBn_0([],C_est_omega,C_est_l0,C_est_l1);
-disp(sprintf(' %% B_omega %+0.2f, B_l0 %+0.2f, B_l1 %+0.2f',B_est_omega,B_est_l0,B_est_l1));
-disp(sprintf(' %% C_omega %+0.2f, C_l0 %+0.2f, C_l1 %+0.2f',C_est_omega,C_est_l0,C_est_l1));
-if isfield(parameter_est,'nlp_tXYC_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXYC_pre %0.6f --> nlp_tXYC_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXYC_pre,parameter_est.nlp_tXYC_pos)); nlp_tXYC_l_(1+niteration) = parameter_est.nlp_tXYC_pos; end;
-if isfield(parameter_est,'nlp_dtZPB_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtZPB_pre %0.6f --> nlp_dtZPB_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtZPB_pre,parameter_est.nlp_dtZPB_pos)); nlp_dtZPB_l_(1+niteration) = parameter_est.nlp_dtZPB_pos; end;
-if isfield(parameter_est,'nlp_dtXaAB_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_dtXaAB_sum_pre %0.6f --> nlp_dtXaAB_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_dtXaAB_sum_pre,parameter_est.nlp_dtXaAB_sum_pos)); nlp_dtXaAB_sum_l_(1+niteration) = parameter_est.nlp_dtXaAB_sum_pos; end;
-if isfield(parameter_est,'nlp_tXaABYC_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_sum_pre %0.6f --> nlp_tXaABYC_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_sum_pre,parameter_est.nlp_tXaABYC_sum_pos)); nlp_tXaABYC_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_sum_pos; end;
-if isfield(parameter_est,'nlp_tXaABYC_integrated_sum_pos'); disp(sprintf(' %% niteration %d/%d: nlp_tXaABYC_integrated_sum_pre %0.6f --> nlp_tXaABYC_integrated_sum_pos %0.6f',niteration,n_iteration,parameter_est.nlp_tXaABYC_integrated_sum_pre,parameter_est.nlp_tXaABYC_integrated_sum_pos)); nlp_tXaABYC_integrated_sum_l_(1+niteration) = parameter_est.nlp_tXaABYC_integrated_sum_pos; end;
+disp(sprintf(' %% nlp_itaABYC_pre %0.6f --> nlp_itaABYC_pos %0.6f',parameter_est.nlp_itaABYC_pre,parameter_est.nlp_itaABYC_pos));
+disp(sprintf(' %% nlp_itaABYC_pre %0.6f --> nlp_itaABYC_pos %0.6f',parameter_est.nlp_itaABYC_pre,parameter_est.nlp_itaABYC_pos));
 end;%if flag_verbose;
-end;%for niteration=0:n_iteration-1;
 %%%%;
 
 %%%%;
