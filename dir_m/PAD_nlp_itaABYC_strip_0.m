@@ -143,8 +143,12 @@ PAD_nlp_tXaABYC_0( ...
 ,C_l0 ...
 ,C_l1 ...
 );
+if isfinite(nlp_tXaABYC_integrated);
 nlp_tXaABYC_integrated_sum = nlp_tXaABYC_integrated_sum + nlp_tXaABYC_integrated;
+end;%if isfinite(nlp_tXaABYC_integrated);
+if isfinite(nlp_tXaABYC);
 nlp_tXaABYC_sum = nlp_tXaABYC_sum + nlp_tXaABYC;
+end;%if isfinite(nlp_tXaABYC);
 X_opt_ixt___{1+ni} = X_opt_xt__;
 clear n_t t_t_ X_xt__ ignore_Y_xt__ Y_xt__ X_opt_xt__ ;
 clear nlp_tXaABYC nlp_tXaABYC_integrated ;
