@@ -1,0 +1,56 @@
+function ...
+[ ...
+ n_nj_from_nt_ ...
+,index_nj_from_nt__ ...
+] = ...
+SDE_index_nj_from_nt_0( ...
+ n_t ...
+,n_j ...
+,index_nt_from_nj_ ...
+);
+
+if (nargin<1);
+n_t = 6;
+index_nt_from_nj_ = [4;2;2;4;2;1;2;1;1;4];
+n_j = numel(index_nt_from_nj_);
+[ ...
+ n_nj_from_nt_ ...
+,index_nj_from_nt__ ...
+] = ...
+SDE_index_nj_from_nt_0( ...
+ n_t ...
+,n_j ...
+,index_nt_from_nj_ ...
+);
+disp('%%%%%%%%');
+disp(sprintf(' %% index_nt_from_nj_: '));
+disp(index_nt_from_nj_);
+disp('%%%%%%%%');
+for nt=0:n_t-1;
+if  isempty(index_nj_from_nt__{1+nt});
+disp(sprintf(' %% nt %d/%d: (found %d) index_nj_from_nt__{1+%d} empty',nt,n_t,n_nj_from_nt_(1+nt),nt));
+end;%if  isempty(index_nj_from_nt__{1+nt});
+if ~isempty(index_nj_from_nt__{1+nt});
+disp(sprintf(' %% nt %d/%d: (found %d) index_nj_from_nt__{1+%d}',nt,n_t,n_nj_from_nt_(1+nt),nt));
+disp(index_nj_from_nt__{1+nt});
+end;%if ~isempty(index_nj_from_nt__{1+nt});
+disp('%%%%%%%%');
+end;%for nt=0:n_t-1;
+disp(sprintf('returning')); return;
+end;%if (nargin<1);
+
+n_nj_from_nt_ = zeros(n_t,1);
+index_nj_from_nt__ = cell(n_t,1);
+for nt=0:n_t-1;
+index_nj_from_nt__{1+nt} = [];
+end;%for nt=0:n_t-1;
+
+nj_ = transpose(0:n_j-1);
+[tmp_a_,tmp_b_] = sort(index_nt_from_nj_,'ascend');
+for nj=0:n_j-1;
+tmp_nt = tmp_a_(1+nj);
+tmp_nj = tmp_b_(1+nj) - 1;
+n_nj_from_nt_(1+tmp_nt) = n_nj_from_nt_(1+tmp_nt) + 1;
+index_nj_from_nt__{1+tmp_nt} = [index_nj_from_nt__{1+tmp_nt};tmp_nj];
+end;%for nj=0:n_j-1;
+
