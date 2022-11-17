@@ -8,6 +8,7 @@ function ...
 ,X_xt__ ...
 ,Y_xt__ ...
 ,R_avg ...
+,zlim_2x__ ...
 ] = ...
 SDE_generate_data_1( ...
  parameter ...
@@ -25,6 +26,7 @@ SDE_generate_data_1( ...
 str_thisfunction = 'SDE_generate_data_1';
 
 if nargin<1;
+nf=0;
 tolerance_master = 1e-6;
 rseed = 1;
 n_x = 2; T_ini = 0; T_max = 256; dt_0in = 1/32;
@@ -41,9 +43,12 @@ C_inv__ = [ +0.5 , +0.3  ;   ...
 	    -0.5 , +0.7] ;
 CtCn_inv_xx__ = C_inv__*transpose(C_inv__);
 CtCn_xx__ = pinv(CtCn_inv_xx__,tolerance_master);
+%%%%%%%%;
+for nflag=0:1;
+%%%%%%%%;
 parameter = struct('type','parameter');
 parameter.dt_avg = dt_0in;
-parameter.flag_discrete_vs_exponential = 1;
+parameter.flag_discrete_vs_exponential = nflag;
 parameter.T_ini = T_ini;
 parameter.T_max = T_max;
 parameter.rseed = rseed;
@@ -56,6 +61,7 @@ parameter.rseed = rseed;
 ,X_xt__ ...
 ,Y_xt__ ...
 ,R_avg ...
+,zlim_2x__ ...
 ] = ...
 SDE_generate_data_1( ...
  parameter ...
@@ -69,7 +75,12 @@ SDE_generate_data_1( ...
 ,CtCn_inv_xx__ ...
 );
 %%%%;
-figure;clf;figbig;figbeach();
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,2,1);plot(sort(diff(t_t_)),'.'); xlabel('nt');ylabel('dt');
+subplot(1,2,2);hist(diff(t_t_),128); title('hist');
+sgtitle(sprintf('parameter.flag_discrete_vs_exponential = %d',parameter.flag_discrete_vs_exponential),'Interpreter','none');
+%%%%;
+figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 p_row = 2; p_col = 4; np=0;
 for pcol=0:p_col-1;
 if pcol==0; tmp_W_xt__ = Q_xt__; tmp_str = 'Q_xt__'; end;
@@ -78,12 +89,16 @@ if pcol==2; tmp_W_xt__ = X_xt__; tmp_str = 'X_xt__'; end;
 if pcol==3; tmp_W_xt__ = Y_xt__; tmp_str = 'Y_xt__'; end;
 subplot(p_row,p_col,1+pcol+0*p_col);
 plot(t_t_,tmp_W_xt__(1,:),'r-',t_t_,tmp_W_xt__(2,:),'b-');
-xlabel('time');ylabel(tmp_str,'Interpreter','none'); xlim([T_ini,T_max]);
+xlabel('time');ylabel(tmp_str,'Interpreter','none'); xlim([T_ini,T_max]); ylim([min(zlim_2x__(1+0,:)),max(zlim_2x__(1+1,:))])
 subplot(p_row,p_col,1+pcol+1*p_col);
 s = surfline_0(tmp_W_xt__(1,:),tmp_W_xt__(2,:),t_t_); set(s,'LineWidth',3);
-xlabel(sprintf('%s(1+0,:)',tmp_str),'Interpreter','none');
-ylabel(sprintf('%s(1+1,:)',tmp_str),'Interpreter','none');
+xlabel(sprintf('%s(1+0,:)',tmp_str),'Interpreter','none'); xlim(zlim_2x__(:,1+0));
+ylabel(sprintf('%s(1+1,:)',tmp_str),'Interpreter','none'); ylim(zlim_2x__(:,1+1));
+grid on;
 end;%for pcol=0:p_col-1;
+sgtitle(sprintf('parameter.flag_discrete_vs_exponential = %d',parameter.flag_discrete_vs_exponential),'Interpreter','none');
+%%%%%%%%;
+end;%for nflag=0:1;
 %%%%%%%%;
 disp('returning'); return;
 end;%if nargin<1;
@@ -186,5 +201,27 @@ Y_xt__(:,1+nt-0) = Y_pos_x_;
 R_dt_(1+ndt) = fnorm(Y_pos_x_ - Y_pre_x_)/max(1e-12,fnorm(Y_pre_x_));
 end;%for nt=1:n_t-1;
 R_avg = mean(R_dt_);
+
+%%%%%%%%;
+% find axis limits. ;
+%%%%%%%%;
+zlim_2x__ = zeros(2,n_x);
+for nx=0:n_x-1;
+zlim_2x__(1+0,1+nx) = +Inf;
+zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(Q_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(P_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(X_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(Y_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+1,1+nx) = -Inf;
+zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(Q_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(P_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(X_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(Y_xt__(1+nx,:),[],'all'));
+end;%for nx=0:n_x-1;
+%%%%;
+for nx=0:n_x-1;
+zlim_2x__(:,1+nx) = mean(zlim_2x__(:,1+nx)) + 1.25*0.5*diff(zlim_2x__(:,1+nx))*[-1;+1];
+end;%for nx=0:n_x-1;
+%%%%;
 
 if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

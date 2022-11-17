@@ -54,7 +54,7 @@ ignore_Y_tru_ixt___ = cell(n_i,1);
 %%%%;
 parameter_gen = struct('type','parameter');
 parameter_gen.dt_avg = dt_0in;
-parameter_gen.flag_discrete_vs_exponential = 1;
+parameter_gen.flag_discrete_vs_exponential = 0;
 parameter_gen.T_ini = T_ini;
 parameter_gen.T_max = T_max;
 for ni=0:n_i-1;
@@ -68,6 +68,7 @@ parameter_gen.rseed = 1+ni;
 ,X_tru_xt__ ...
 ,Y_tru_xt__ ...
 ,R_avg ...
+,zlim_2x__ ...
 ] = ...
 SDE_generate_data_1( ...
  parameter_gen ...
@@ -91,11 +92,11 @@ if pcol==2; tmp_W_xt__ = X_tru_xt__; tmp_str = 'X_tru_xt__'; end;
 if pcol==3; tmp_W_xt__ = Y_tru_xt__; tmp_str = 'Y_tru_xt__'; end;
 subplot(p_row,p_col,1+pcol+0*p_col);
 plot(t_t_,tmp_W_xt__(1,:),'r-',t_t_,tmp_W_xt__(2,:),'b-');
-xlabel('time');ylabel(tmp_str,'Interpreter','none'); xlim([T_ini,T_max]);
+xlabel('time');ylabel(tmp_str,'Interpreter','none'); xlim([T_ini,T_max]); ylim([min(zlim_2x__(1+0,:)),max(zlim_2x__(1+1,:))])
 subplot(p_row,p_col,1+pcol+1*p_col);
 s = surfline_0(tmp_W_xt__(1,:),tmp_W_xt__(2,:),t_t_); set(s,'LineWidth',3);
-xlabel(sprintf('%s(1+0,:)',tmp_str),'Interpreter','none');
-ylabel(sprintf('%s(1+1,:)',tmp_str),'Interpreter','none');
+xlabel(sprintf('%s(1+0,:)',tmp_str),'Interpreter','none'); xlim(zlim_2x__(:,1+0));
+ylabel(sprintf('%s(1+1,:)',tmp_str),'Interpreter','none'); ylim(zlim_2x__(:,1+1));
 end;%for pcol=0:p_col-1;
 sgtitle(sprintf('ni %d',ni),'Interpreter','none');
 end;%if flag_disp;

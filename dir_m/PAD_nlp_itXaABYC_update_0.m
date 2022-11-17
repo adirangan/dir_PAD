@@ -43,7 +43,7 @@ str_thisfunction = 'PAD_nlp_itXaABYC_update_0';
 if (nargin<1);
 disp(sprintf(' %% testing %s',str_thisfunction));
 %%%%%%%%;
-disp(sprintf(' %% see: test_%s_0.m',str_thisfunction));
+disp(sprintf(' %% see: test_%s.m',str_thisfunction));
 %%%%%%%%;
 disp('returning'); return;
 end;%if (nargin<1);
@@ -96,8 +96,9 @@ if isempty(A_xx__); A_xx__ = zeros(n_x,n_x); end;
 if isempty(B_omega); B_omega = 0; end; if isempty(B_l0); B_l0 = 0; end; if isempty(B_l1); B_l1 = 0; end;
 if isempty(C_omega); C_omega = 0; end; if isempty(C_l0); C_l0 = 0; end; if isempty(C_l1); C_l1 = 0; end;
 
+%%%%%%%%%%%%%%%%;
 if ~isempty(strfind(str_update,'CtCn_xx__'));
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 n_t_all = sum(n_t_i_);
 X_all_xt__ = zeros(n_x,n_t_all);
 ignore_Y_all_xt__ = zeros(n_x,n_t_all);
@@ -122,13 +123,13 @@ end;%if flag_verbose;
 parameter.nlp_tXYC_pre = nlp_tXYC_pre;
 parameter.nlp_tXYC_pos = nlp_tXYC_pos;
 clear tmp_index_ X_all_xt__ ignore_Y_all_xt__ Y_all_xt__ f_nlp ;
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 end;%if ~isempty(strfind(str_update,'CtCn_xx__'));
+%%%%%%%%%%%%%%%%;
 
+%%%%%%%%%%%%%%%%;
 if ~isempty(strfind(str_update,'BtBn_xx__'));
-%%%%%%%%;
-% Designed with the assumption that all the dt are the same. ;
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 n_dt_all = sum(n_t_i_-1);
 XY_all_xdt__ = zeros(n_x,n_dt_all);
 dt_all_dt_ = zeros(n_dt_all,1);
@@ -164,6 +165,11 @@ ndt=ndt + n_t_i_(1+ni)-1;
 clear nlp_dtXaAB BtBn_xx__ Q_xt__ P_xt__ dX_xdt__ dQ_xdt__ dP_xdt__ ZX_xdt__ ZQ_xdt__ ZP_xdt__ ;
 end;%for ni=0:n_i-1;
 assert(ndt==n_dt_all);
+%%%%%%%%%%%%%%%%;
+if numel(unique(dt_all_dt_))==1;
+%%%%%%%%;
+% Designed with the assumption that all the dt are the same. ;
+%%%%%%%%;
 f_nlp = @(w0l0l1_) PAD_nlp_tXYC_strip_0(n_x,n_dt_all,ZP_all_xdt__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2)) + flag_regularize_eccentricity*PAD_nlp_tXYC_eccentricity_0(n_x,n_dt_all,w0l0l1_(1+1),w0l0l1_(1+2)); ;
 nlp_dtZPB_pre = f_nlp([B_omega,B_l0,B_l1]);
 [w0l0l1_opt_,fval_opt] = fminsearch(f_nlp,[B_omega,B_l0,B_l1],optimset('MaxFunEvals',parameter.MaxFunEvals_use));
@@ -171,17 +177,32 @@ B_omega = w0l0l1_opt_(1+0); B_l0 = w0l0l1_opt_(1+1); B_l1 = w0l0l1_opt_(1+2);
 B_l0 = B_l0 + log(mean(dt_all_dt_));
 B_l1 = B_l1 + log(mean(dt_all_dt_));
 nlp_dtZPB_pos = f_nlp([B_omega,B_l0,B_l1]);
+%%%%%%%%
+end;%if numel(unique(dt_all_dt_))==1;
+if numel(unique(dt_all_dt_))> 1;
+%%%%%%%%;
+% Designed to allow for nonunique dt. ;
+%%%%%%%%;
+f_nlp = @(w0l0l1_) PAD_nlp_dtZPB_strip_0(n_dt_all,dt_all_dt_,n_x,ZP_all_xdt__,w0l0l1_(1+0),w0l0l1_(1+1),w0l0l1_(1+2)) + flag_regularize_eccentricity*PAD_nlp_tXYC_eccentricity_0(n_x,n_dt_all,w0l0l1_(1+1),w0l0l1_(1+2)); ;
+nlp_dtZPB_pre = f_nlp([B_omega,B_l0,B_l1]);
+[w0l0l1_opt_,fval_opt] = fminsearch(f_nlp,[B_omega,B_l0,B_l1],optimset('MaxFunEvals',parameter.MaxFunEvals_use));
+B_omega = w0l0l1_opt_(1+0); B_l0 = w0l0l1_opt_(1+1); B_l1 = w0l0l1_opt_(1+2);
+nlp_dtZPB_pos = f_nlp([B_omega,B_l0,B_l1]);
+end;%if numel(unique(dt_all_dt_))> 1;
+%%%%%%%%%%%%%%%%;
 if flag_verbose;
 disp(sprintf(' %% B_omega %+0.2f B_l0 %+0.2f B_l1 %+0.2f: nlp_dtZPB %0.6f --> %0.6f',B_omega,B_l0,B_l1,nlp_dtZPB_pre,nlp_dtZPB_pos));
 end;%if flag_verbose;
 parameter.nlp_dtZPB_pre = nlp_dtZPB_pre;
 parameter.nlp_dtZPB_pos = nlp_dtZPB_pos;
 clear ZP_all_xdt__ f_nlp ;
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 end;%if ~isempty(strfind(str_update,'BtBn_xx__'));
+%%%%%%%%%%%%%%%%;
 
+%%%%%%%%%%%%%%%%;
 if ~isempty(strfind(str_update,'a_xa_')) | ~isempty(strfind(str_update,'A_xx__'));
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 % Note that we actually update a_xa__ and A_xx__ independently ;
 % (each is updated assuming that the other is a constant). ;
 % In future versions we should update these simultaneously. ;
@@ -259,11 +280,13 @@ end;%for ni=0:n_i-1;
 %%%%;
 parameter.nlp_dtXaAB_sum_pre = nlp_dtXaAB_sum_pre;
 parameter.nlp_dtXaAB_sum_pos = nlp_dtXaAB_sum_pos;
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 end;%if ~isempty(strfind(str_update,'a_xa_')) | ~isempty(strfind(str_update,'A_xx_'));
+%%%%%%%%%%%%%%%%;
 
+%%%%%%%%%%%%%%%%;
 if ~isempty(strfind(str_update,'X_xt__'));
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 nlp_tXaABYC_integrated_sum_pre=0;
 nlp_tXaABYC_sum_pre = 0;
 for ni=0:n_i-1;
@@ -351,10 +374,13 @@ parameter.nlp_tXaABYC_sum_pre = nlp_tXaABYC_sum_pre;
 parameter.nlp_tXaABYC_sum_pos = nlp_tXaABYC_sum_pos;
 parameter.nlp_tXaABYC_integrated_sum_pre = nlp_tXaABYC_integrated_sum_pre;
 parameter.nlp_tXaABYC_integrated_sum_pos = nlp_tXaABYC_integrated_sum_pos;
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 end;%if ~isempty(strfind(str_update,'X_xt__'));
+%%%%%%%%%%%%%%%%;
 
+%%%%%%%%%%%%%%%%;
 if ~isempty(strfind(str_update,'simultaneous'));
+%%%%%%%%%%%%%%%%;
 % a_xa__ = reshape(input_(1 +       0 + 0 + [0:n_x*n_a-1]),[n_x,n_a]) ;
 % A_xx__ = reshape(input_(1 + n_x*n_a + 0 + [0:n_x*n_x-1]),[n_x,n_x]) ;
 % B_omega = input_(1 + n_x*n_a + n_x*n_x + 0);
@@ -430,8 +456,9 @@ PAD_nlp_itaABYC_strip_0( ...
 ,C_l0 ...
 ,C_l1 ...
 );
-%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 end;%if ~isempty(strfind(str_update,'simultaneous'));
+%%%%%%%%%%%%%%%%;
 
 
 
