@@ -129,6 +129,7 @@ if (~isfield(parameter,'flag_discrete_vs_exponential')); parameter.flag_discrete
 if (~isfield(parameter,'T_ini')); parameter.T_ini = 0; end;
 if (~isfield(parameter,'T_max')); parameter.T_max = 64; end;
 if (~isfield(parameter,'n_j_factor')); parameter.n_j_factor = 2; end;
+if (~isfield(parameter,'ignore_factor')); parameter.ignore_factor = 0.5; end;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end;
 tolerance_master = parameter.tolerance_master;
 flag_verbose = parameter.flag_verbose;
@@ -137,6 +138,7 @@ flag_discrete_vs_exponential = parameter.flag_discrete_vs_exponential;
 T_ini = parameter.T_ini;
 T_max = parameter.T_max;
 n_j_factor = parameter.n_j_factor;
+ignore_factor = parameter.ignore_factor;
 rseed = parameter.rseed;
 n_t = 1+floor((T_max-T_ini)/dt_avg);
 t_t_ = zeros(n_t,1);
@@ -152,7 +154,7 @@ n_dt = n_t-1;
 dt_dt_ = diff(t_t_);
 n_j = ceil(n_t*n_j_factor);
 index_nt_from_nj_ = sort(max(0,min(n_t-1,floor(n_t*rand(n_j,1)))),'ascend');
-ignore_Y_xj__ = rand(n_x,n_j)>0.5;
+ignore_Y_xj__ = rand(n_x,n_j)<=ignore_factor;
 
 if flag_verbose; disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 

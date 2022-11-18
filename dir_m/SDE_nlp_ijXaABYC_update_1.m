@@ -89,13 +89,15 @@ if flag_verbose; disp(sprintf(' %% str_update: %s',str_update)); end;
 if isempty(X_ixt___);
 X_ixt___ = cell(n_i,1);
 for ni=0:n_i-1;
+n_t = n_t_i_(1+ni);
+t_t_ = t_it__{1+ni};
 index_nt_from_nj_ = index_nt_from_nj_i__{1+ni};
 ignore_Y_xj__ = ignore_Y_ixj___{1+ni};
 Y_xj__ = Y_ixj___{1+ni};
 X_xt__ = zeros(n_x,n_t);
 X_xt__(:,1+index_nt_from_nj_) = 0.5*Y_xj__.*(~ignore_Y_xj__);
 X_ixt___{1+ni} = X_xt__;
-clear index_nt_from_nj_ ignore_Y_xj__ Y_xj__ X_xt__ ;
+clear n_t t_t_ X_xt__ index_nt_from_nj_ ignore_Y_xj__ Y_xj__ ;
 end;%for ni=0:n_i-1;
 end;%if isempty(X_ixt___);
 
@@ -306,8 +308,8 @@ end;%if ~isempty(strfind(str_update,'a_xa_')) | ~isempty(strfind(str_update,'A_x
 %%%%%%%%%%%%%%%%;
 if ~isempty(strfind(str_update,'X_xt__'));
 %%%%%%%%%%%%%%%%;
-nlp_itXaABYC_integrated_pre=0;
-nlp_itXaABYC_pre = 0;
+nlp_ijXaABYC_integrated_pre=0;
+nlp_ijXaABYC_pre = 0;
 for ni=0:n_i-1;
 n_t = n_t_i_(1+ni);
 t_t_ = t_it__{1+ni};
@@ -348,15 +350,15 @@ SDE_nlp_jXaABYC_1( ...
 ,C_l0 ...
 ,C_l1 ...
 );
-nlp_itXaABYC_integrated_pre = nlp_itXaABYC_integrated_pre + nlp_jXaABYC_integrated;
-nlp_itXaABYC_pre = nlp_itXaABYC_pre + nlp_jXaABYC;
+nlp_ijXaABYC_integrated_pre = nlp_ijXaABYC_integrated_pre + nlp_jXaABYC_integrated;
+nlp_ijXaABYC_pre = nlp_ijXaABYC_pre + nlp_jXaABYC;
 X_ixt___{1+ni} = X_opt_xt__;
 clear n_t t_t_ X_xt__ n_j index_nt_from_nj_ ignore_Y_xj__ Y_xj__ X_opt_xt__ ;
 clear nlp_jXaABYC nlp_jXaABYC_integrated nlp_dtXaAB nlp_tXYC nlp_dtXaAB_dX_xt__ nlp_dtXaAB_dX_xtxt__ nlp_tXYC_dX_xt__ nlp_tXYC_dX_xtxt__ ;
 end;%for ni=0:n_i-1;
 %%%%;
-nlp_itXaABYC_integrated_pos = 0;
-nlp_itXaABYC_pos = 0;
+nlp_ijXaABYC_integrated_pos = 0;
+nlp_ijXaABYC_pos = 0;
 for ni=0:n_i-1;
 n_t = n_t_i_(1+ni);
 t_t_ = t_it__{1+ni};
@@ -391,16 +393,16 @@ SDE_nlp_jXaABYC_1( ...
 ,C_l0 ...
 ,C_l1 ...
 );
-nlp_itXaABYC_integrated_pos = nlp_itXaABYC_integrated_pos + nlp_jXaABYC_integrated;
-nlp_itXaABYC_pos = nlp_itXaABYC_pos + nlp_jXaABYC;
+nlp_ijXaABYC_integrated_pos = nlp_ijXaABYC_integrated_pos + nlp_jXaABYC_integrated;
+nlp_ijXaABYC_pos = nlp_ijXaABYC_pos + nlp_jXaABYC;
 clear n_t t_t_ X_xt__ n_j index_nt_from_nj_ ignore_Y_xj__ Y_xj__ X_opt_xt__ ;
 clear nlp_jXaABYC nlp_jXaABYC_integrated ;
 end;%for ni=0:n_i-1;
 %%%%;
-parameter.nlp_itXaABYC_pre = nlp_itXaABYC_pre;
-parameter.nlp_itXaABYC_pos = nlp_itXaABYC_pos;
-parameter.nlp_itXaABYC_integrated_pre = nlp_itXaABYC_integrated_pre;
-parameter.nlp_itXaABYC_integrated_pos = nlp_itXaABYC_integrated_pos;
+parameter.nlp_ijXaABYC_pre = nlp_ijXaABYC_pre;
+parameter.nlp_ijXaABYC_pos = nlp_ijXaABYC_pos;
+parameter.nlp_ijXaABYC_integrated_pre = nlp_ijXaABYC_integrated_pre;
+parameter.nlp_ijXaABYC_integrated_pos = nlp_ijXaABYC_integrated_pos;
 %%%%%%%%%%%%%%%%;
 end;%if ~isempty(strfind(str_update,'X_xt__'));
 %%%%%%%%%%%%%%%%;
