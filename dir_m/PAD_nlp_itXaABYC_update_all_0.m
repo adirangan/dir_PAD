@@ -243,14 +243,14 @@ PAD_nlp_itXaABYC_update_0( ...
 );
 %%%%;
 if flag_verbose;
-if isfield(parameter_est,'nlp_itaABYC_pre') & isfield(parameter_est,'nlp_itaABYC_pos');
-disp(sprintf(' %% nlp_itaABYC_pre %0.6f --> nlp_itaABYC_pos %0.6f',parameter_est.nlp_itaABYC_pre,parameter_est.nlp_itaABYC_pos));
-end;%if isfield(parameter_est,'nlp_itaABYC_pre') & isfield(parameter_est,'nlp_itaABYC_pos');
+if isfield(parameter_est,'nlp_itXaABYC_pre') & isfield(parameter_est,'nlp_itXaABYC_pos');
+disp(sprintf(' %% nlp_itXaABYC_pre %0.6f --> nlp_itXaABYC_pos %0.6f',parameter_est.nlp_itXaABYC_pre,parameter_est.nlp_itXaABYC_pos));
+end;%if isfield(parameter_est,'nlp_itXaABYC_pre') & isfield(parameter_est,'nlp_itXaABYC_pos');
 end;%if flag_verbose;
 %%%%;
-if isfield(parameter_est,'nlp_itaABYC_pos');
-parameter.nlp_itaABYC = parameter_est.nlp_itaABYC_pos;
-end;%if isfield(parameter_est,'nlp_itaABYC_pos');
+if isfield(parameter_est,'nlp_itXaABYC_pos');
+parameter.nlp_itXaABYC = parameter_est.nlp_itXaABYC_pos;
+end;%if isfield(parameter_est,'nlp_itXaABYC_pos');
 %%%%;
 
 %%%%;

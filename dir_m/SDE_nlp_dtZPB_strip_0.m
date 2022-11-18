@@ -14,7 +14,7 @@ SDE_nlp_dtZPB_strip_0( ...
 
 na=0;
 if (nargin<1+na); n_dt=[]; end; na=na+1;
-if (nargin<1+na); t_t_=[]; end; na=na+1;
+if (nargin<1+na); dt_dt_=[]; end; na=na+1;
 if (nargin<1+na); n_x=[]; end; na=na+1;
 if (nargin<1+na); ZP_xdt__=[]; end; na=na+1;
 if (nargin<1+na); B_omega=[]; end; na=na+1;
