@@ -444,7 +444,8 @@ SDE_nlp_ijXaABYC_strip_1( ...
 );
 input_pre_ = [a_xa__(:);A_xx__(:);B_omega;B_l0;B_l1;C_omega;C_l0;C_l1];
 nlp_ijXaABYC_pre = f_nlp(input_pre_);
-[input_opt_,fval_opt] = fminsearch(f_nlp,input_pre_,optimset('MaxFunEvals',parameter.MaxFunEvals_use,'Display','iter'));
+if flag_verbose>=1; str_Display = 'iter'; end; if flag_verbose< 1; str_Display = 'none'; end;
+[input_opt_,fval_opt] = fminsearch(f_nlp,input_pre_,optimset('MaxFunEvals',parameter.MaxFunEvals_use,'Display',str_Display));
 a_xa__ = reshape(input_opt_(1 +       0 + 0 + [0:n_x*n_a-1]),[n_x,n_a]) ;
 A_xx__ = reshape(input_opt_(1 + n_x*n_a + 0 + [0:n_x*n_x-1]),[n_x,n_x]) ;
 B_omega = input_opt_(1 + n_x*n_a + n_x*n_x + 0);

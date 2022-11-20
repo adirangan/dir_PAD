@@ -15,8 +15,8 @@ n_a = 3;
 a_tru_xa__ = [ +1.00 , -2.00/T_max , +9.50/T_max.^2   ; ...
                -0.50 , +1.25/T_max , -9.25/T_max.^2 ] ;
 B_tru_omega = +pi/3;
-B_tru_l0 = +1.0;
-B_tru_l1 = -1.0;
+B_tru_l0 = +1.5;
+B_tru_l1 = +1.0;
 [ ...
  ~ ...
 ,BtBn_tru_xx__ ...
@@ -28,8 +28,8 @@ PAD_BtBn_0( ...
 ,B_tru_l1 ...
 );
 C_tru_omega = -2*pi/5;
-C_tru_l0 = +4.6;
-C_tru_l1 = +3.6;
+C_tru_l0 = +2.6;
+C_tru_l1 = +2.1;
 [ ...
  ~ ...
 ,CtCn_tru_xx__ ...
@@ -59,8 +59,8 @@ parameter_gen.dt_avg = dt_0in;
 parameter_gen.flag_discrete_vs_exponential = 0;
 parameter_gen.T_ini = T_ini;
 parameter_gen.T_max = T_max;
-parameter_gen.n_j_factor = 1.2;
-parameter_gen.ignore_factor = 0.2;
+parameter_gen.n_j_factor = 1.02;
+parameter_gen.ignore_factor = 0.02;
 for ni=0:n_i-1;
 parameter_gen.rseed = 1+ni;
 [ ...
@@ -74,7 +74,8 @@ parameter_gen.rseed = 1+ni;
 ,index_nt_from_nj_ ...
 ,ignore_Y_tru_xj__ ...
 ,Y_tru_xj__ ...
-,R_avg ...
+,RX_avg ...
+,RY_avg ...
 ,zlim_2x__ ...
 ] = ...
 SDE_generate_data_2( ...
@@ -117,7 +118,7 @@ n_j_i_(1+ni) = n_j;
 index_nt_from_nj_i__{1+ni} = index_nt_from_nj_;
 ignore_Y_tru_ixj___{1+ni} = ignore_Y_tru_xj__;
 Y_tru_ixj___{1+ni} = Y_tru_xj__;
-clear n_t t_t_ Q_tru_xt__ P_tru_xt__ X_tru_xt__ n_j index_nt_from_nj_ ignore_Y_tru_xj__ Y_tru_xj__ R_avg ;
+clear n_t t_t_ Q_tru_xt__ P_tru_xt__ X_tru_xt__ n_j index_nt_from_nj_ ignore_Y_tru_xj__ Y_tru_xj__ RX_avg RY_avg ;
 %%%%;
 end;%for ni=0:n_i-1;
 
@@ -377,7 +378,7 @@ disp(sprintf(' %% nlp_ijXaABYC_pre %0.6f --> nlp_ijXaABYC_pos %0.6f',parameter_e
 disp(sprintf(' %% nlp_ijXaABYC_integrated_pre %0.6f --> nlp_ijXaABYC_integrated_pos %0.6f',parameter_est.nlp_ijXaABYC_integrated_pre,parameter_est.nlp_ijXaABYC_integrated_pos));
 end;%if flag_verbose;
 %%%%;
-if flag_disp;
+if flag_disp>0;
 figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 p_row = 2; p_col = n_i; np=0;
 for prow=0:p_row-1;
@@ -396,9 +397,9 @@ title(sprintf('ni %d',ni),'Interpreter','none');
 end;%for pcol=0:p_col-1;
 end;%for prow=0:p_row-1;
 sgtitle(sprintf('X_est_ixt___'),'Interpreter','none');
-end;%if flag_disp;
+end;%if flag_disp>0;
 %%%%;
-if flag_disp;
+if flag_disp>0;
 figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 p_row = 2; p_col = n_i; np=0;
 for prow=0:p_row-1;
@@ -417,7 +418,7 @@ title(sprintf('ni %d',ni),'Interpreter','none');
 end;%for pcol=0:p_col-1;
 end;%for prow=0:p_row-1;
 sgtitle(sprintf('X_est_ixt___'),'Interpreter','none');
-end;%if flag_disp;
+end;%if flag_disp>0;
 %%%%%%%%;
 
 %%%%%%%%;
@@ -445,8 +446,8 @@ C_est_l1=[];
 %%%%;
 parameter_est = struct('type','parameter_est');
 parameter_est.tolerance_master = tolerance_master;
-parameter_est.flag_verbose = flag_verbose-1;
-parameter_est.flag_disp = flag_verbose-1;
+parameter_est.flag_verbose = flag_verbose-2;
+parameter_est.flag_disp = flag_verbose-2;
 parameter_est.flag_regularize_eccentricity_BtBn = 1;
 parameter_est.flag_regularize_eccentricity_simultaneous = 0;
 parameter_est.n_iteration_BtBn = 16;
@@ -495,7 +496,7 @@ SDE_nlp_ijXaABYC_update_all_1( ...
 ,C_est_l1 ...
 );
 %%%%%%%%;
-if flag_disp;
+if flag_disp>0;
 figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 p_row = 2; p_col = n_i; np=0;
 for prow=0:p_row-1;
@@ -514,9 +515,9 @@ title(sprintf('ni %d',ni),'Interpreter','none');
 end;%for pcol=0:p_col-1;
 end;%for prow=0:p_row-1;
 sgtitle(sprintf('all: X_est_ixt___'),'Interpreter','none');
-end;%if flag_disp;
+end;%if flag_disp>0;
 %%%%;
-if flag_disp;
+if flag_disp>0;
 figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 p_row = 2; p_col = n_i; np=0;
 for prow=0:p_row-1;
@@ -535,6 +536,6 @@ title(sprintf('ni %d',ni),'Interpreter','none');
 end;%for pcol=0:p_col-1;
 end;%for prow=0:p_row-1;
 sgtitle(sprintf('all: X_est_ixt___'),'Interpreter','none');
-end;%if flag_disp;
+end;%if flag_disp>0;
 %%%%%%%%;
 

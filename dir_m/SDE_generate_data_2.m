@@ -10,7 +10,8 @@ function ...
 ,index_nt_from_nj_ ...
 ,ignore_Y_xj__ ...
 ,Y_xj__ ...
-,R_avg ...
+,RX_avg ...
+,RY_avg ...
 ,zlim_2x__ ...
 ] = ...
 SDE_generate_data_2( ...
@@ -66,7 +67,8 @@ parameter.rseed = rseed;
 ,index_nt_from_nj_ ...
 ,ignore_Y_xj__ ...
 ,Y_xj__ ...
-,R_avg ...
+,RX_avg ...
+,RY_avg ...
 ,zlim_2x__ ...
 ] = ...
 SDE_generate_data_2( ...
@@ -128,8 +130,8 @@ if (~isfield(parameter,'dt_avg')); parameter.dt_avg = 0.25; end;
 if (~isfield(parameter,'flag_discrete_vs_exponential')); parameter.flag_discrete_vs_exponential = 0; end;
 if (~isfield(parameter,'T_ini')); parameter.T_ini = 0; end;
 if (~isfield(parameter,'T_max')); parameter.T_max = 64; end;
-if (~isfield(parameter,'n_j_factor')); parameter.n_j_factor = 2; end;
-if (~isfield(parameter,'ignore_factor')); parameter.ignore_factor = 0.5; end;
+if (~isfield(parameter,'n_j_factor')); parameter.n_j_factor = 1.02; end; %<-- in dolphin-data roughly 0.0175 of the time-steps are of zero-length. ;
+if (~isfield(parameter,'ignore_factor')); parameter.ignore_factor = 0.02; end; %<-- in dolphin-data roughly 2\% of observations are missing. ;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end;
 tolerance_master = parameter.tolerance_master;
 flag_verbose = parameter.flag_verbose;
@@ -153,7 +155,7 @@ end;%for nt=1:n_t-1;
 n_dt = n_t-1;
 dt_dt_ = diff(t_t_);
 n_j = ceil(n_t*n_j_factor);
-index_nt_from_nj_ = sort(max(0,min(n_t-1,floor(n_t*rand(n_j,1)))),'ascend');
+index_nt_from_nj_ = sort(periodize(transpose(0:n_j-1),0,n_t),'ascend');
 ignore_Y_xj__ = rand(n_x,n_j)<=ignore_factor;
 
 if flag_verbose; disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
@@ -187,7 +189,6 @@ Q_ini_x_ = Q_xt__(:,1+0);
 X_xt__ = zeros(n_x,n_t); X_xt__(:,1+0) = X_ini_x_;
 P_xt__ = zeros(n_x,n_t); %<-- P_xt__ = X_xt__ - Q_xt__ ;
 P_ini_x_ = X_ini_x_ - Q_ini_x_; P_xt__(:,1+0) = P_ini_x_;
-R_dt_ = zeros(n_dt,1);
 for nt=1:n_t-1;
 t_pre = t_t_(1+nt-1);
 t_pos = t_t_(1+nt-0);
@@ -207,9 +208,15 @@ end;%if flag_discrete_vs_exponential==1;
 P_xt__(:,1+nt-0) = P_pos_x_;
 X_pos_x_ = P_pos_x_ + Q_pos_x_;
 X_xt__(:,1+nt-0) = X_pos_x_;
-R_dt_(1+ndt) = fnorm(X_pos_x_ - X_pre_x_)/max(1e-12,fnorm(X_pre_x_));
 end;%for nt=1:n_t-1;
-R_avg = mean(R_dt_);
+%%%%;
+RX_dt_ = zeros(n_dt,1);
+for nt=1:n_t-1;
+ndt = nt-1;
+X_pos_x_ = X_xt__(:,1+nt+0); X_pre_x_ = X_xt__(:,1+nt-1);
+RX_dt_(1+ndt) = fnorm(X_pos_x_ - X_pre_x_)/max(1e-12,max(fnorm(X_pre_x_),fnorm(X_pos_x_))); %<-- note that we allow for division by fnorm(X_pos_x_) to reduce spurious zeros. ;
+end;%for nt=1:n_t-1;
+RX_avg = mean(RX_dt_);
 %%%%;
 [ ...
  n_nj_from_nt_ ...
@@ -225,10 +232,21 @@ for nt=0:n_t-1;
 n_nj_from_nt = n_nj_from_nt_(1+nt);
 index_nj_from_nt_ = index_nj_from_nt__{1+nt};
 if n_nj_from_nt> 0;
-Y_xj__(:,1+index_nj_from_nt_) = bsxfun(@plus,X_xt__(:,1+nt),C_pinv_xx__*randn(n_x,n_nj_from_nt));
+Y_sub_xj__ = bsxfun(@plus,X_xt__(:,1+nt),C_pinv_xx__*randn(n_x,n_nj_from_nt));
+Y_sub_diff_xj__ = diff(Y_sub_xj__,1,2);
+Y_xj__(:,1+index_nj_from_nt_) = Y_sub_xj__;
 end;%if n_nj_from_nt> 0;
 clear n_nj_from_nt index_nj_from_nt_;
 end;%for nt=0:n_t-1;
+%%%%;
+n_dj = n_j-1;
+RY_dj_ = zeros(n_dj,1);
+for nj=1:n_j-1;
+ndj = nj-1;
+Y_pos_x_ = Y_xj__(:,1+nj+0); Y_pre_x_ = Y_xj__(:,1+nj-1);
+RY_dj_(1+ndj) = fnorm(Y_pos_x_ - Y_pre_x_)/max(1e-12,max(fnorm(Y_pre_x_),fnorm(Y_pos_x_))); %<-- note that we allow for division by fnorm(Y_pos_x_) to reduce spurious zeros. ;
+end;%for nj=1:n_j-1;
+RY_avg = mean(RY_dj_);
 
 %%%%%%%%;
 % find axis limits. ;
