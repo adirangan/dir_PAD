@@ -292,11 +292,13 @@ if isempty(parameter); parameter = struct('type','parameter'); end;
 if ~isfield(parameter,'tolerance_master'); parameter.tolerance_master = 1e-2; end;
 if ~isfield(parameter,'tolerance_dt'); parameter.tolerance_dt = 1e-12; end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
+if ~isfield(parameter,'flag_regularize_eccentricity'); parameter.flag_regularize_eccentricity = 0; end;
 tolerance_master = parameter.tolerance_master;
 tolerance_dt = parameter.tolerance_dt;
 flag_verbose = parameter.flag_verbose;
+flag_regularize_eccentricity = parameter.flag_regularize_eccentricity;
 
-if flag_verbose; disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
+if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
 %%%%;
 tmp_t = tic();
@@ -309,7 +311,7 @@ SDE_index_nj_from_nt_0( ...
 ,n_j ...
 ,index_nt_from_nj_ ...
 );
-tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% SDE_index_nj_from_nt_0: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% SDE_index_nj_from_nt_0: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'SDE_index_nj_from_nt_0',tmp_t,1,max(n_j,n_t));
 %%%%;
 
@@ -357,7 +359,7 @@ SDE_nlp_jXaABYC_strip_1( ...
 ,ZQ_xdt__ ...
 ,ZP_xdt__ ...
 );
-tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% SDE_nlp_jXaABYC_strip_1: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% SDE_nlp_jXaABYC_strip_1: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'SDE_nlp_jXaABYC_strip_1',tmp_t,1,n_x*n_a*n_t);
 %%%%;
 [ ...
@@ -481,7 +483,7 @@ tmp_val_nz_(1+tmp_nnz+[0:n_1-1]) = +Z2_base_0;
 tmp_nnz = tmp_nnz + n_1;
 nlp_jXYC_dX_xtxt__ = sparse(1+tmp_index_row_nz_,1+tmp_index_col_nz_,tmp_val_nz_,n_x*n_t,n_x*n_t);
 %%%%;
-tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_jXYC_dX_xtxt__: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nlp_jXYC_dX_xtxt__: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'nlp_jXYC_dX_xtxt__',tmp_t,1,n_x*n_t);
 %%%%;
 
@@ -528,7 +530,7 @@ end;%for nnj_from_nt=0:n_nj_from_nt-1;
 end;%else;
 end;%if (n_nj_from_nt> 0);
 end;%for nt=0:n_t-1;
-tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_jXYC_dX_xtxt__ (slow): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nlp_jXYC_dX_xtxt__ (slow): %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'nlp_jXYC_dX_xtxt__ (slow)',tmp_t,1,n_x*n_t);
 %%%%;
 disp(sprintf(' %% nlp_jXYC_dX_bkp_xt__ vs nlp_jXYC_dX_xt__: %0.16f',fnorm(nlp_jXYC_dX_bkp_xt__-nlp_jXYC_dX_xt__)/fnorm(nlp_jXYC_dX_bkp_xt__)));
@@ -641,7 +643,7 @@ tmp_nnz = tmp_nnz + n_dt;
 nlp_dtXaAB_dX_top_xtxt__ = sparse(1+tmp_index_row_nz_,1+tmp_index_col_nz_,tmp_val_nz_,n_x*n_t,n_x*n_t);
 %%%%;
 %%%%;
-tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_dtXaAB_dX_xtxt__: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nlp_dtXaAB_dX_xtxt__: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'nlp_dtXaAB_dX_xtxt__',tmp_t,1,n_x*n_t);
 %%%%;
 
@@ -699,7 +701,7 @@ nlp_dtXaAB_dX_top_xtxt__(1+1+nt_out*n_x,1+0+nt_0in*n_x) = + M_xx__(1+1,1+0)/tmp_
 nlp_dtXaAB_dX_top_xtxt__(1+1+nt_out*n_x,1+1+nt_0in*n_x) = + M_xx__(1+1,1+1)/tmp_dt ;
 end;%if (nt> 0);
 end;%for nt=0:n_t-1;
-tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% nlp_dtXaAB_dX_xtxt__ (slow): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nlp_dtXaAB_dX_xtxt__ (slow): %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'nlp_dtXaAB_dX_xtxt__ (slow)',tmp_t,1,n_x*n_t);
 %%%%;
 disp(sprintf(' %% nlp_dtXaAB_dX_bot_bkp_xt__ vs nlp_dtXaAB_dX_bot_xt__: %0.16f',fnorm(nlp_dtXaAB_dX_bot_bkp_xt__-nlp_dtXaAB_dX_bot_xt__)/fnorm(nlp_dtXaAB_dX_bot_bkp_xt__)));
@@ -724,7 +726,7 @@ end;%if n_t>=128;
 tmp_t = tic();
 [tmp_LHS_l_xtxt__,tmp_LHS_u_xtxt__,tmp_LHS_t_xtxt__] = lu(tmp_LHS_xtxt__);
 tmp_LHS_ldetu = sum(log(abs(diag(tmp_LHS_u_xtxt__))));
-tmp_t = toc(tmp_t); if flag_verbose; disp(sprintf(' %% tmp_LHS_ldetu: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tmp_LHS_ldetu: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'tmp_LHS_ldetu',tmp_t,1,nnz(tmp_LHS_xtxt__));
 nlp_jXaABYC_integrated = nlp_dtXaAB + nlp_jXYC - 0.5*n_t*n_x*log(2*pi) + 0.5*tmp_LHS_ldetu; %<-- multidimensional laplace integral. ;
 %%%%;
@@ -733,7 +735,25 @@ nlp_jXaABYC_integrated = nlp_dtXaAB + nlp_jXYC - 0.5*n_t*n_x*log(2*pi) + 0.5*tmp
 end;%if (n_t> 1);
 %%%%%%%%%%%%%%%%;
 
-if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
+nlp_jXaABYC_integrated = nlp_jXaABYC_integrated ...
++ flag_regularize_eccentricity* ...
+SDE_nlp_jXYC_eccentricity_1( ...
+ n_x ...
+,n_dt ...
+,B_l0 ...
+,B_l1 ...
+);
+nlp_jXaABYC_integrated = nlp_jXaABYC_integrated ...
++ flag_regularize_eccentricity* ...
+SDE_nlp_jXYC_eccentricity_1( ...
+ n_x ...
+,n_j ...
+,C_l0 ...
+,C_l1 ...
+);
+
+
+if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 
 
 

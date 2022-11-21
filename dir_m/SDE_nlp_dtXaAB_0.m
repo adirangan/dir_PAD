@@ -268,7 +268,7 @@ tmp_BtBndt_xxdt___ = 0.5*bsxfun(@times,reshape(BtBn_xx__,[n_x,n_x,1]),reshape(in
 I_xx__ = eye(n_x,n_x);
 nlp_dtXaAB_0 = - n_dt*( (B_l0 + B_l1)/2 - 0.5*n_x*log(2*pi) ) + sum( 0.5*n_x*log(dt_dt_) );
 %%%%;
-if flag_verbose;
+if (flag_verbose>0);
 nlp_dtXaAB_P = sum( bsxfun(@times,bsxfun(@times,reshape(ZP_xdt__,[n_x,1,n_dt]),tmp_BtBndt_xxdt___),reshape(ZP_xdt__,[1,n_x,n_dt])) , 'all' );
 %nlp_dtXaAB_P = ...
 %  +sum( bsxfun(@times,bsxfun(@times,reshape(ZX_xdt__,[n_x,1,n_dt]),tmp_BtBndt_xxdt___),reshape(ZX_xdt__,[1,n_x,n_dt])) , 'all' ) ...
@@ -276,7 +276,7 @@ nlp_dtXaAB_P = sum( bsxfun(@times,bsxfun(@times,reshape(ZP_xdt__,[n_x,1,n_dt]),t
 %  -sum( bsxfun(@times,bsxfun(@times,reshape(ZX_xdt__,[n_x,1,n_dt]),tmp_BtBndt_xxdt___),reshape(ZQ_xdt__,[1,n_x,n_dt])) , 'all' ) ...
 %  +sum( bsxfun(@times,bsxfun(@times,reshape(ZQ_xdt__,[n_x,1,n_dt]),tmp_BtBndt_xxdt___),reshape(ZQ_xdt__,[1,n_x,n_dt])) , 'all' ) ...
 %  ;
-end;%if flag_verbose;
+end;%if (flag_verbose>0);
 %%%%;
 nlp_dtXaAB_a = sum( bsxfun(@times,bsxfun(@times,reshape(ZX_xdt__,[n_x,1,n_dt]),tmp_BtBndt_xxdt___),reshape(ZX_xdt__,[1,n_x,n_dt])) , 'all' );
 %{
@@ -403,7 +403,7 @@ nlp_dtXaAB_da_xa__(1+nm,1+nq) = ...
 ;
 end;%for nq=0:n_a-1;
 end;%for nm=0:n_x-1;
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% nlp_dtXaAB_da , nlp_dtXaAB_da %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nlp_dtXaAB_da , nlp_dtXaAB_da %0.6fs',tmp_t)); end;
 %}
 
 tmp_t = tic();
@@ -446,7 +446,7 @@ end;%for nj0=0:n_dt-1;
 end;%for nq0=0:n_a-1;
 end;%for nm0=0:n_x-1;
 %%%%;
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% nlp_dtXaAB_da , nlp_dtXaAB_da %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nlp_dtXaAB_da , nlp_dtXaAB_da %0.6fs',tmp_t)); end;
 
 %%%%%%%%%%%%%%%%;
 nlp_dtXaAB_A = sum( bsxfun(@times,bsxfun(@times,reshape(dP_xdt__,[n_x,1,n_dt]),tmp_BtBndt_xxdt___),reshape(dP_xdt__,[1,n_x,n_dt])) , 'all' );
@@ -471,9 +471,9 @@ nlp_dtXaAB_dA_xx__(1+nx0,1+nx1) = nlp_dtXaAB_dA_xx__(1+nx0,1+nx1) - 2*sum( 0.5 *
 end;%for nx2=0:n_x-1;
 end;%for nx1=0:n_x-1;
 end;%for nx0=0:n_x-1;
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% nlp_dtXaAB_dA , nlp_dtXaAB_dA %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nlp_dtXaAB_dA , nlp_dtXaAB_dA %0.6fs',tmp_t)); end;
 %%%%%%%%%%%%%%%%;
-if flag_verbose;
+if (flag_verbose>0);
 tmp_nlp_P = nlp_dtXaAB_0 + nlp_dtXaAB_P;
 tmp_nlp_a = nlp_dtXaAB_0 + nlp_dtXaAB_a ...
 + 1*reshape(nlp_dtXaAB_da_xa__,[1,n_x*n_a])*reshape(a_xa__,[n_x*n_a,1]) ...
@@ -487,7 +487,7 @@ disp(sprintf(' %% nlp_dtXaAB vs tmp_nlp_P: %0.16f',fnorm(nlp_dtXaAB-tmp_nlp_P)/f
 disp(sprintf(' %% nlp_dtXaAB vs tmp_nlp_a: %0.16f',fnorm(nlp_dtXaAB-tmp_nlp_a)/fnorm(nlp_dtXaAB)));
 disp(sprintf(' %% nlp_dtXaAB vs tmp_nlp_A: %0.16f',fnorm(nlp_dtXaAB-tmp_nlp_A)/fnorm(nlp_dtXaAB)));
 
-end;%if flag_verbose;
+end;%if (flag_verbose>0);
 %%%%%%%%%%%%%%%%;
 end;%if nargout> 3;
 
