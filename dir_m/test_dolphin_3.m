@@ -2,7 +2,7 @@ function ...
 [ ...
  parameter_dolphin ...
 ] = ...
-test_dolphin_2( ...
+test_dolphin_3( ...
  parameter_dolphin ...
 );
 %%%%%%%%;
@@ -44,26 +44,24 @@ test_dolphin_2( ...
   % or 120 dolphins with T_max = 10. ; (Note that the observed number of dolphins was 136). ;
 %}
 %%%%%%%%;
-str_thisfunction = 'test_dolphin_2';
+str_thisfunction = 'test_dolphin_3';
 
 if nargin<1;
 disp(sprintf(' %% running %s',str_thisfunction));
 %%%%%%%%;
 setup_local;
 dir_trunk = sprintf('/data/rangan/dir_bcc/dir_PAD');
-n_i_ = [ 35 ; 70 ; 140 ]; n_n_i = numel(n_i_);
-B_log_amplitude_ = [ -6 ; 0 ; +6 ]; n_B_log_amplitude = numel(B_log_amplitude_);
-C_log_amplitude_ = [ -6 ; 0 ; +6 ]; n_C_log_amplitude = numel(C_log_amplitude_);
-MaxFunEvals_use_simultaneous_ = [0 ; 16 ; 64]; n_MaxFunEvals_use_simultaneous = numel(MaxFunEvals_use_simultaneous_);
-rseed_ = [1:32]; n_rseed = numel(rseed_);
-for nn_i=0:n_n_i-1;
-n_i = n_i_(1+nn_i);
+n_i = 140;
+n_iteration_BtBn = 32;
+MaxFunEvals_use_BtBn = 1024;
+MaxFunEvals_use_simultaneous = 0;
+B_log_amplitude_ = [ -6:+3:+6 ]; n_B_log_amplitude = numel(B_log_amplitude_);
+C_log_amplitude_ = [ -6:+3:+6 ]; n_C_log_amplitude = numel(C_log_amplitude_);
+rseed_ = [1:256]; n_rseed = numel(rseed_);
 for nB_log_amplitude=0:n_B_log_amplitude-1;
 B_log_amplitude = B_log_amplitude_(1+nB_log_amplitude);
 for nC_log_amplitude=0:n_C_log_amplitude-1;
 C_log_amplitude = C_log_amplitude_(1+nC_log_amplitude);
-for nMaxFunEvals_use_simultaneous=0:n_MaxFunEvals_use_simultaneous-1;
-MaxFunEvals_use_simultaneous = MaxFunEvals_use_simultaneous_(1+nMaxFunEvals_use_simultaneous);
 for nrseed=0:n_rseed-1;
 rseed = rseed_(1+nrseed);
 %%%%;
@@ -72,15 +70,15 @@ parameter_dolphin.dir_trunk = dir_trunk;
 parameter_dolphin.n_i = n_i;
 parameter_dolphin.B_log_amplitude = B_log_amplitude;
 parameter_dolphin.C_log_amplitude = C_log_amplitude;
+parameter_dolphin.n_iteration_BtBn = n_iteration_BtBn;
+parameter_dolphin.MaxFunEvals_use_BtBn = MaxFunEvals_use_BtBn;
 parameter_dolphin.MaxFunEvals_use_simultaneous = MaxFunEvals_use_simultaneous;
 parameter_dolphin.rseed = rseed;
-test_dolphin_2(parameter_dolphin);
+test_dolphin_3(parameter_dolphin);
 %%%%;
 end;%for nrseed=0:n_rseed-1;
-end;%for nMaxFunEvals_use_simultaneous=0:n_MaxFunEvals_use_simultaneous-1;
 end;%for nC_log_amplitude=0:n_C_log_amplitude-1;
 end;%for nB_log_amplitude=0:n_B_log_amplitude-1;
-end;%for nn_i=0:n_n_i-1;
 %%%%%%%%;
 disp(sprintf('returning'));return;
 end;%if nargin<1;
@@ -104,6 +102,8 @@ if ~isfield(parameter_dolphin,'T_max'); parameter_dolphin.T_max = 10.5; end;
 if ~isfield(parameter_dolphin,'B_log_amplitude'); parameter_dolphin.B_log_amplitude = 0.0; end;
 if ~isfield(parameter_dolphin,'C_log_amplitude'); parameter_dolphin.C_log_amplitude = 0.0; end;
 if ~isfield(parameter_dolphin,'X_log_amplitude'); parameter_dolphin.X_log_amplitude = 0.0; end;
+if ~isfield(parameter_dolphin,'n_iteration_BtBn'); parameter_dolphin.n_iteration_BtBn = 32; end;
+if ~isfield(parameter_dolphin,'MaxFunEvals_use_BtBn'); parameter_dolphin.MaxFunEvals_use_BtBn = 1024; end;
 if ~isfield(parameter_dolphin,'MaxFunEvals_use_simultaneous'); parameter_dolphin.MaxFunEvals_use_simultaneous = 16; end;
 if ~isfield(parameter_dolphin,'flag_regularize_eccentricity_simultaneous'); parameter_dolphin.flag_regularize_eccentricity_simultaneous = 1; end;
 if ~isfield(parameter_dolphin,'rseed'); parameter_dolphin.rseed = 1; end;
@@ -122,6 +122,8 @@ T_max = parameter_dolphin.T_max;
 B_log_amplitude = parameter_dolphin.B_log_amplitude;
 C_log_amplitude = parameter_dolphin.C_log_amplitude;
 X_log_amplitude = parameter_dolphin.X_log_amplitude;
+n_iteration_BtBn = parameter_dolphin.n_iteration_BtBn;
+MaxFunEvals_use_BtBn = parameter_dolphin.MaxFunEvals_use_BtBn;
 MaxFunEvals_use_simultaneous = parameter_dolphin.MaxFunEvals_use_simultaneous;
 flag_regularize_eccentricity_simultaneous = parameter_dolphin.flag_regularize_eccentricity_simultaneous;
 rseed = parameter_dolphin.rseed;
@@ -141,6 +143,8 @@ test_dolphin_infix_0( ...
 ,B_log_amplitude ...
 ,C_log_amplitude ...
 ,X_log_amplitude ...
+,n_iteration_BtBn ...
+,MaxFunEvals_use_BtBn ...
 ,MaxFunEvals_use_simultaneous ...
 ,flag_regularize_eccentricity_simultaneous ...
 ,rseed ...
@@ -270,8 +274,8 @@ parameter_est.flag_verbose = flag_verbose-1;
 parameter_est.flag_disp = flag_verbose-1;
 parameter_est.flag_regularize_eccentricity_BtBn = 1;
 parameter_est.flag_regularize_eccentricity_simultaneous = flag_regularize_eccentricity_simultaneous;
-parameter_est.n_iteration_BtBn = 16;
-parameter_est.MaxFunEvals_use_BTBn = 1024;
+parameter_est.n_iteration_BtBn = n_iteration_BtBn;
+parameter_est.MaxFunEvals_use_BTBn = MaxFunEvals_use_BtBn;
 parameter_est.MaxFunEvals_use_simultaneous = MaxFunEvals_use_simultaneous;
 [ ...
  parameter_est ...
