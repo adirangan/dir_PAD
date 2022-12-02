@@ -18,6 +18,22 @@ test_dolphin_infix_0( ...
 ,rseed ...
 );
 
+na=0;
+if (nargin<1+na); dt_avg=[]; end; na=na+1;
+if (nargin<1+na); n_i=[]; end; na=na+1;
+if (nargin<1+na); n_j_factor=[]; end; na=na+1;
+if (nargin<1+na); ignore_factor=[]; end; na=na+1;
+if (nargin<1+na); T_ini=[]; end; na=na+1;
+if (nargin<1+na); T_max=[]; end; na=na+1;
+if (nargin<1+na); B_log_amplitude=[]; end; na=na+1;
+if (nargin<1+na); C_log_amplitude=[]; end; na=na+1;
+if (nargin<1+na); X_log_amplitude=[]; end; na=na+1;
+if (nargin<1+na); n_iteration_BtBn=[]; end; na=na+1;
+if (nargin<1+na); MaxFunEvals_use_BtBn=[]; end; na=na+1;
+if (nargin<1+na); MaxFunEvals_use_simultaneous=[]; end; na=na+1;
+if (nargin<1+na); flag_regularize_eccentricity_simultaneous=[]; end; na=na+1;
+if (nargin<1+na); rseed=[]; end; na=na+1;
+
 str_dt_avg = sprintf('dt%.4d',floor(1000*dt_avg));
 str_n_i = sprintf('i%.3d',n_i);
 str_n_j_factor = sprintf('j%.3d',floor(100*n_j_factor));
@@ -30,7 +46,8 @@ str_n_iteration_BtBn = sprintf('n%.3d',n_iteration_BtBn);
 str_MaxFunEvals_use_BtBn = sprintf('M%.3d',MaxFunEvals_use_BtBn);
 str_MaxFunEvals_use_simultaneous = sprintf('M%.3d',MaxFunEvals_use_simultaneous);
 str_flag_regularize_eccentricity_simultaneous = sprintf('e%d',flag_regularize_eccentricity_simultaneous);
-str_rseed = sprintf('r%d',rseed);
+if  isempty(rseed); str_rseed = ''; end;
+if ~isempty(rseed); str_rseed = sprintf('r%d',rseed); end;
 str_infix = sprintf('%s%s%s%s%s%s%s%s%s%s%s%s%s' ...
 ,str_dt_avg ...
 ,str_n_i ...
