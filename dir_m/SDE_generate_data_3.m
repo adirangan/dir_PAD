@@ -6,11 +6,15 @@ function ...
 ,Q_xt__ ...
 ,P_xt__ ...
 ,X_xt__ ...
-,Y_xt__ ...
-,R_avg ...
+,n_j ...
+,index_nt_from_nj_ ...
+,ignore_Y_xj__ ...
+,Y_xj__ ...
+,RX_avg ...
+,RY_avg ...
 ,zlim_2x__ ...
 ] = ...
-SDE_generate_data_1( ...
+SDE_generate_data_3( ...
  parameter ...
 ,n_x ...
 ,n_a ...
@@ -23,24 +27,28 @@ SDE_generate_data_1( ...
 ,X_ini_x_ ...
 );
 
-str_thisfunction = 'SDE_generate_data_1';
+str_thisfunction = 'SDE_generate_data_3';
 
 if nargin<1;
 nf=0;
 tolerance_master = 1e-6;
 rseed = 1;
-n_x = 2; T_ini = 0; T_max = 256; dt_0in = 1/32;
-A_xx__ = [-0.3 , +1.0   ; ...
-            -1 , -0.5 ] ;
-n_a = 3;
-a_xa__ = [ +1.00 , -2.00/T_max , +9.50/T_max.^2   ; ...
-           -0.50 , +1.25/T_max , -9.25/T_max.^2 ] ;
-B_inv__ = [ +0.5 , 0.3  ; ...
-	    -0.4 , 0.8] ;
+n_x = 3; T_ini = 0; T_max = 256; dt_0in = 1/32;
+A_xx__ = [-0.3 , +1.0 , -0.2  ; ...
+          -1.0 , -0.5 , -0.3  ; ...
+          +1.2 , +0.2 , -0.3  ] ;
+n_a = 4;
+a_xa__ = [ +1.00 , -2.00/T_max , -3.50/T_max.^2 , +9.50/T_max.^3   ; ...
+           +0.50 , -1.25/T_max , +3.50/T_max.^2 , +9.25/T_max.^3   ; ...
+           -0.50 , +1.25/T_max , -3.25/T_max.^2 , +9.25/T_max.^3 ] ;
+B_inv__ = [ +0.5 , -0.2 , +0.3   ; ...
+	    -0.4 , +0.2 , +0.8   ; ...
+	    -0.6 , -0.2 , +0.8 ] ;
 BtBn_inv_xx__ = B_inv__*transpose(B_inv__);
 BtBn_xx__ = pinv(BtBn_inv_xx__,tolerance_master);
-C_inv__ = [ +0.5 , +0.3  ;   ...
-	    -0.5 , +0.7] ;
+C_inv__ = [ +0.5 , -1.0 , +0.3   ;   ...
+	    -0.5 , +1.0 , +0.7   ;   ...
+	    -0.5 , -1.0 , +0.7 ] ;
 CtCn_inv_xx__ = C_inv__*transpose(C_inv__);
 CtCn_xx__ = pinv(CtCn_inv_xx__,tolerance_master);
 %%%%%%%%;
@@ -59,11 +67,15 @@ parameter.rseed = rseed;
 ,Q_xt__ ...
 ,P_xt__ ...
 ,X_xt__ ...
-,Y_xt__ ...
-,R_avg ...
+,n_j ...
+,index_nt_from_nj_ ...
+,ignore_Y_xj__ ...
+,Y_xj__ ...
+,RX_avg ...
+,RY_avg ...
 ,zlim_2x__ ...
 ] = ...
-SDE_generate_data_1( ...
+SDE_generate_data_3( ...
  parameter ...
 ,n_x ...
 ,n_a ...
@@ -83,18 +95,20 @@ sgtitle(sprintf('parameter.flag_discrete_vs_exponential = %d',parameter.flag_dis
 figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 p_row = 2; p_col = 4; np=0;
 for pcol=0:p_col-1;
-if pcol==0; tmp_W_xt__ = Q_xt__; tmp_str = 'Q_xt__'; end;
-if pcol==1; tmp_W_xt__ = P_xt__; tmp_str = 'P_xt__'; end;
-if pcol==2; tmp_W_xt__ = X_xt__; tmp_str = 'X_xt__'; end;
-if pcol==3; tmp_W_xt__ = Y_xt__; tmp_str = 'Y_xt__'; end;
+if pcol==0; tmp_t_t_ = t_t_; tmp_W_xt__ = Q_xt__; tmp_str = 'Q_xt__'; end;
+if pcol==1; tmp_t_t_ = t_t_; tmp_W_xt__ = P_xt__; tmp_str = 'P_xt__'; end;
+if pcol==2; tmp_t_t_ = t_t_; tmp_W_xt__ = X_xt__; tmp_str = 'X_xt__'; end;
+if pcol==3; tmp_t_t_ = t_t_(1+index_nt_from_nj_); tmp_W_xt__ = Y_xj__; tmp_str = 'Y_xj__'; end;
 subplot(p_row,p_col,1+pcol+0*p_col);
-plot(t_t_,tmp_W_xt__(1,:),'r-',t_t_,tmp_W_xt__(2,:),'b-');
-xlabel('time');ylabel(tmp_str,'Interpreter','none'); xlim([T_ini,T_max]); ylim([min(zlim_2x__(1+0,:)),max(zlim_2x__(1+1,:))])
+plot(tmp_t_t_,tmp_W_xt__(1,:),'r-',tmp_t_t_,tmp_W_xt__(2,:),'b-',tmp_t_t_,tmp_W_xt__(3,:),'g-');
+xlabel('time');ylabel(tmp_str,'Interpreter','none'); 
+xlim([T_ini,T_max]); ylim([min(zlim_2x__(1+0,:)),max(zlim_2x__(1+1,:))])
 subplot(p_row,p_col,1+pcol+1*p_col);
-s = surfline_0(tmp_W_xt__(1,:),tmp_W_xt__(2,:),t_t_); set(s,'LineWidth',3);
+s = surfline_0(tmp_W_xt__(1,:),tmp_W_xt__(2,:),tmp_W_xt__(3,:),tmp_t_t_); set(s,'LineWidth',3);
 xlabel(sprintf('%s(1+0,:)',tmp_str),'Interpreter','none'); xlim(zlim_2x__(:,1+0));
 ylabel(sprintf('%s(1+1,:)',tmp_str),'Interpreter','none'); ylim(zlim_2x__(:,1+1));
-grid on;
+zlabel(sprintf('%s(1+2,:)',tmp_str),'Interpreter','none'); zlim(zlim_2x__(:,1+2));
+axis vis3d;
 end;%for pcol=0:p_col-1;
 sgtitle(sprintf('parameter.flag_discrete_vs_exponential = %d',parameter.flag_discrete_vs_exponential),'Interpreter','none');
 %%%%%%%%;
@@ -122,6 +136,8 @@ if (~isfield(parameter,'dt_avg')); parameter.dt_avg = 0.25; end;
 if (~isfield(parameter,'flag_discrete_vs_exponential')); parameter.flag_discrete_vs_exponential = 0; end;
 if (~isfield(parameter,'T_ini')); parameter.T_ini = 0; end;
 if (~isfield(parameter,'T_max')); parameter.T_max = 64; end;
+if (~isfield(parameter,'n_j_factor')); parameter.n_j_factor = 1.02; end; %<-- in dolphin-data roughly 0.0175 of the time-steps are of zero-length. ;
+if (~isfield(parameter,'ignore_factor')); parameter.ignore_factor = 0.02; end; %<-- in dolphin-data roughly 2\% of observations are missing. ;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end;
 tolerance_master = parameter.tolerance_master;
 flag_verbose = parameter.flag_verbose;
@@ -129,6 +145,8 @@ dt_avg = parameter.dt_avg;
 flag_discrete_vs_exponential = parameter.flag_discrete_vs_exponential;
 T_ini = parameter.T_ini;
 T_max = parameter.T_max;
+n_j_factor = parameter.n_j_factor;
+ignore_factor = parameter.ignore_factor;
 rseed = parameter.rseed;
 n_t = 1+floor((T_max-T_ini)/dt_avg);
 t_t_ = zeros(n_t,1);
@@ -142,6 +160,9 @@ t_t_(1+nt) = t_t_(1+nt-1) + dt;
 end;%for nt=1:n_t-1;
 n_dt = n_t-1;
 dt_dt_ = diff(t_t_);
+n_j = ceil(n_t*n_j_factor);
+index_nt_from_nj_ = sort(periodize(transpose(0:n_j-1),0,n_t),'ascend');
+ignore_Y_xj__ = rand(n_x,n_j)<=ignore_factor;
 
 if flag_verbose; disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
@@ -174,14 +195,11 @@ Q_ini_x_ = Q_xt__(:,1+0);
 X_xt__ = zeros(n_x,n_t); X_xt__(:,1+0) = X_ini_x_;
 P_xt__ = zeros(n_x,n_t); %<-- P_xt__ = X_xt__ - Q_xt__ ;
 P_ini_x_ = X_ini_x_ - Q_ini_x_; P_xt__(:,1+0) = P_ini_x_;
-Y_xt__ = zeros(n_x,n_t); Y_xt__(:,1+0) = X_ini_x_ + C_pinv_xx__*randn(n_x,1);
-R_dt_ = zeros(n_dt,1);
 for nt=1:n_t-1;
 t_pre = t_t_(1+nt-1);
 t_pos = t_t_(1+nt-0);
 ndt = nt-1;
 dt = dt_dt_(1+ndt);
-Y_pre_x_ = Y_xt__(:,1+nt-1);
 X_pre_x_ = X_xt__(:,1+nt-1);
 Q_pre_x_ = Q_xt__(:,1+nt-1);
 Q_pos_x_ = Q_xt__(:,1+nt-0);
@@ -196,11 +214,45 @@ end;%if flag_discrete_vs_exponential==1;
 P_xt__(:,1+nt-0) = P_pos_x_;
 X_pos_x_ = P_pos_x_ + Q_pos_x_;
 X_xt__(:,1+nt-0) = X_pos_x_;
-Y_pos_x_ = X_pos_x_ + C_pinv_xx__*randn(n_x,1);
-Y_xt__(:,1+nt-0) = Y_pos_x_;
-R_dt_(1+ndt) = fnorm(Y_pos_x_ - Y_pre_x_)/max(1e-12,fnorm(Y_pre_x_));
 end;%for nt=1:n_t-1;
-R_avg = mean(R_dt_);
+%%%%;
+RX_dt_ = zeros(n_dt,1);
+for nt=1:n_t-1;
+ndt = nt-1;
+X_pos_x_ = X_xt__(:,1+nt+0); X_pre_x_ = X_xt__(:,1+nt-1);
+RX_dt_(1+ndt) = fnorm(X_pos_x_ - X_pre_x_)/max(1e-12,max(fnorm(X_pre_x_),fnorm(X_pos_x_))); %<-- note that we allow for division by fnorm(X_pos_x_) to reduce spurious zeros. ;
+end;%for nt=1:n_t-1;
+RX_avg = mean(RX_dt_);
+%%%%;
+[ ...
+ n_nj_from_nt_ ...
+,index_nj_from_nt__ ...
+] = ...
+SDE_index_nj_from_nt_0( ...
+ n_t ...
+,n_j ...
+,index_nt_from_nj_ ...
+);
+Y_xj__ = zeros(n_x,n_j);
+for nt=0:n_t-1;
+n_nj_from_nt = n_nj_from_nt_(1+nt);
+index_nj_from_nt_ = index_nj_from_nt__{1+nt};
+if n_nj_from_nt> 0;
+Y_sub_xj__ = bsxfun(@plus,X_xt__(:,1+nt),C_pinv_xx__*randn(n_x,n_nj_from_nt));
+Y_sub_diff_xj__ = diff(Y_sub_xj__,1,2);
+Y_xj__(:,1+index_nj_from_nt_) = Y_sub_xj__;
+end;%if n_nj_from_nt> 0;
+clear n_nj_from_nt index_nj_from_nt_;
+end;%for nt=0:n_t-1;
+%%%%;
+n_dj = n_j-1;
+RY_dj_ = zeros(n_dj,1);
+for nj=1:n_j-1;
+ndj = nj-1;
+Y_pos_x_ = Y_xj__(:,1+nj+0); Y_pre_x_ = Y_xj__(:,1+nj-1);
+RY_dj_(1+ndj) = fnorm(Y_pos_x_ - Y_pre_x_)/max(1e-12,max(fnorm(Y_pre_x_),fnorm(Y_pos_x_))); %<-- note that we allow for division by fnorm(Y_pos_x_) to reduce spurious zeros. ;
+end;%for nj=1:n_j-1;
+RY_avg = mean(RY_dj_);
 
 %%%%%%%%;
 % find axis limits. ;
@@ -211,12 +263,12 @@ zlim_2x__(1+0,1+nx) = +Inf;
 zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(Q_xt__(1+nx,:),[],'all'));
 zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(P_xt__(1+nx,:),[],'all'));
 zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(X_xt__(1+nx,:),[],'all'));
-zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(Y_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+0,1+nx) = min(zlim_2x__(1+0,1+nx),min(Y_xj__(1+nx,:),[],'all'));
 zlim_2x__(1+1,1+nx) = -Inf;
 zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(Q_xt__(1+nx,:),[],'all'));
 zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(P_xt__(1+nx,:),[],'all'));
 zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(X_xt__(1+nx,:),[],'all'));
-zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(Y_xt__(1+nx,:),[],'all'));
+zlim_2x__(1+1,1+nx) = max(zlim_2x__(1+1,1+nx),max(Y_xj__(1+nx,:),[],'all'));
 end;%for nx=0:n_x-1;
 %%%%;
 for nx=0:n_x-1;
