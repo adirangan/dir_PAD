@@ -104,11 +104,10 @@ plot(tmp_t_t_,tmp_W_xt__(1,:),'r-',tmp_t_t_,tmp_W_xt__(2,:),'b-',tmp_t_t_,tmp_W_
 xlabel('time');ylabel(tmp_str,'Interpreter','none'); 
 xlim([T_ini,T_max]); ylim([min(zlim_2x__(1+0,:)),max(zlim_2x__(1+1,:))])
 subplot(p_row,p_col,1+pcol+1*p_col);
-s = surfline_0(tmp_W_xt__(1,:),tmp_W_xt__(2,:),tmp_W_xt__(3,:),tmp_t_t_); set(s,'LineWidth',3);
+s = surfline_0(tmp_W_xt__(1,:),tmp_W_xt__(2,:),tmp_W_xt__(3,:),tmp_t_t_); set(s,'LineWidth',3); axis vis3d;
 xlabel(sprintf('%s(1+0,:)',tmp_str),'Interpreter','none'); xlim(zlim_2x__(:,1+0));
 ylabel(sprintf('%s(1+1,:)',tmp_str),'Interpreter','none'); ylim(zlim_2x__(:,1+1));
 zlabel(sprintf('%s(1+2,:)',tmp_str),'Interpreter','none'); zlim(zlim_2x__(:,1+2));
-axis vis3d;
 end;%for pcol=0:p_col-1;
 sgtitle(sprintf('parameter.flag_discrete_vs_exponential = %d',parameter.flag_discrete_vs_exponential),'Interpreter','none');
 %%%%%%%%;

@@ -426,7 +426,7 @@ tmp_d_1  = + 0.5*  1*log(2*pi) - 0.5*(C_l0 + C_l1) + 0.5*log(l2_stretch_0); %<--
 tmp_t = tic();
 %%%%;
 nlp_jXYC_dX_xt__ = sparse(n_x,n_t);
-tmp_n_nz = 4*n_01 + 1*n_0 + 1*n_1;
+tmp_n_nz = 2*n_01 + 1*n_0 + 1*n_1;
 tmp_index_row_nz_ = zeros(tmp_n_nz,1);
 tmp_index_col_nz_ = zeros(tmp_n_nz,1);
 tmp_val_nz_ = zeros(tmp_n_nz,1);
