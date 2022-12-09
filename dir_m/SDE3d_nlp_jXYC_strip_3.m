@@ -83,6 +83,7 @@ SDE3d_BtBn_1( ...
 
 %%%%%%%%;
 if isempty(ignore_Y_xj__); ignore_Y_xj__ = ~isfinite(Y_xj__); end;%if isempty(ignore_Y_xj__); 
+XY_xj__(1+efind(ignore_Y_xj__)) = 0;
 attend_Y_xj__ = ~ignore_Y_xj__;
 attend_Y_111_j_ = transpose((transpose(attend_Y_xj__)*[1;1;1] == 3) & (transpose(attend_Y_xj__)*[0;0;0] == 0));
 attend_Y_100_j_ = transpose((transpose(attend_Y_xj__)*[1;0;0] == 1) & (transpose(attend_Y_xj__)*[0;1;1] == 0));

@@ -276,14 +276,14 @@ SDE3d_nlp_ijXaABYC_update_2( ...
 );
 %%%%;
 if (flag_verbose>0);
-if isfield(parameter_est,'nlp_itXaABYC_pre') & isfield(parameter_est,'nlp_itXaABYC_pos');
-disp(sprintf(' %% nlp_itXaABYC_pre %0.6f --> nlp_itXaABYC_pos %0.6f',parameter_est.nlp_itXaABYC_pre,parameter_est.nlp_itXaABYC_pos));
-end;%if isfield(parameter_est,'nlp_itXaABYC_pre') & isfield(parameter_est,'nlp_itXaABYC_pos');
+if isfield(parameter_est,'nlp_ijXaABYC_pre') & isfield(parameter_est,'nlp_ijXaABYC_pos');
+disp(sprintf(' %% nlp_ijXaABYC_pre %0.6f --> nlp_ijXaABYC_pos %0.6f',parameter_est.nlp_ijXaABYC_pre,parameter_est.nlp_ijXaABYC_pos));
+end;%if isfield(parameter_est,'nlp_ijXaABYC_pre') & isfield(parameter_est,'nlp_ijXaABYC_pos');
 end;%if (flag_verbose>0);
 %%%%;
-if isfield(parameter_est,'nlp_itXaABYC_pos');
-parameter.nlp_itXaABYC = parameter_est.nlp_itXaABYC_pos;
-end;%if isfield(parameter_est,'nlp_itXaABYC_pos');
+if isfield(parameter_est,'nlp_ijXaABYC_pos');
+parameter.nlp_ijXaABYC = parameter_est.nlp_ijXaABYC_pos;
+end;%if isfield(parameter_est,'nlp_ijXaABYC_pos');
 %%%%;
 
 %%%%;

@@ -333,6 +333,8 @@ legend({u_label_measurement_{1+nv0},u_label_measurement_{1+nv1}},'Location','Sou
 
 parameter = struct('type','parameter');
 parameter.flag_verbose = 1;
+parameter.flag_disp = 1;
+parameter.MaxFunEvals_use_simultaneous = 1;
 data_0in_iva___ = data_iva___(:,1+[nv0,nv1],:);
 data_0in_measure_iva___ = data_measure_iva___(:,1+[nv0,nv1],:);
 n_q=[];

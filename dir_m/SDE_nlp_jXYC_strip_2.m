@@ -77,6 +77,7 @@ SDE_BtBn_0( ...
 );
 
 if isempty(ignore_Y_xj__); ignore_Y_xj__ = ~isfinite(Y_xj__); end;%if isempty(ignore_Y_xj__); 
+XY_xj__(1+efind(ignore_Y_xj__)) = 0;
 ignore_Y_sum_j_ = sum(ignore_Y_xj__,1);
 use_Y_01_j_ = ~ignore_Y_sum_j_; n_01 = sum(use_Y_01_j_);
 use_Y_0_j_ = (ignore_Y_sum_j_ & ~ignore_Y_xj__(1+0,:)); n_0 = sum(use_Y_0_j_);
