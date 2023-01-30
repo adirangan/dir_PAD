@@ -70,7 +70,7 @@ if (flag_verbose); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
 %%%%%%%%;
 % U_n__ = [ +c -s ; +s +c ];
-% BtBn__ = U_n_ * [ expl0 0 ; 0 expl1 ] * transpose(U_n_) ;
+% BtBn__ = U_n__ * [ expl0 0 ; 0 expl1 ] * transpose(U_n__) ;
 %%%%%%%%;
 c = cos(omega) ; s = sin(omega) ;
 s2w = c*s; c2w = c^2 - s^2; %<-- double angle formulae. ;

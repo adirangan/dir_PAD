@@ -21,10 +21,11 @@ rsync -avum \
 #    --include="*.sh" \
 #    --exclude="*" ;
 cd /data/rangan/dir_bcc/dir_PAD ;
+git add README.txt ;
 git add dir_m/*.m ;
 git add dir_m_dependencies/*.m ;
 git add *.sh ;
-git commit -m "updating dir_PAD for shreya thirumalai " ;
+git commit -m "updating dir_PAD " ;
 git push ;
 git pull ;
 cd /data/rangan/dir_bcc/dir_PAD ;
@@ -54,3 +55,4 @@ cd /data/rangan/dir_bcc/dir_PAD ;
 #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
 #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
 #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
+#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
