@@ -379,6 +379,8 @@ ignore_Y_tru_ixj___ = ignore_Y_tru_ixj___(1+tmp_index_);
 Y_tru_ixj___ = Y_tru_ixj___(1+tmp_index_);
 %%%%%%%%;
 
+flag_disp=0;
+if flag_disp;
 %%%%%%%%;
 % Now plot just to check. ;
 %%%%%%%%;
@@ -439,6 +441,26 @@ if (ni==n_i-1 | (mod(ni,32)==0)); sgtitle(sprintf('ni %d/%d',ni,n_i),'Interprete
 %%%%%%%%;
 end;%for ni=0:n_i-1;
 %%%%%%%%;
+end;%if flag_disp;
+
+%%%%%%%%;
+% Make some extra directories to store the results. ;
+%%%%%%%%;
+str_species = 'Chimpanzee';
+dir_PAD_infix = sprintf('%s_nv%.2dnv%.2d',str_species,nv0,nv1);
+dir_PAD_output_mat = sprintf('%s/dir_PAD_%s_mat',dir_base,dir_PAD_infix);
+dir_PAD_output_jpg = sprintf('%s/dir_PAD_%s_jpg',dir_base,dir_PAD_infix);
+if ~exist(dir_PAD_output_mat,'dir'); disp(sprintf(' %% mkdir %s',dir_PAD_output_mat)); mkdir(dir_PAD_output_mat); end;
+if ~exist(dir_PAD_output_jpg,'dir'); disp(sprintf(' %% mkdir %s',dir_PAD_output_jpg)); mkdir(dir_PAD_output_jpg); end;
+n_shuffle = 8; %<-- increase later. ;
+
+for nshuffle=0:n_shuffle-1+1;
+str_nshuffle = sprintf('s%.4d',nshuffle);
+tmp_fname_pre = sprintf('%s/%s_%s',dir_PAD_output_mat,dir_PAD_infix,str_nshuffle);
+[tmp_flag_skip,tmp_fname_mat] = open_fname_tmp(tmp_fname_pre);
+%%%%%%%%;
+if ~tmp_flag_skip;
+%%%%%%%%;
 
 tolerance_master = 1e-2;
 n_a = 2;
@@ -463,6 +485,8 @@ parameter_est = struct('type','parameter_est');
 parameter_est.tolerance_master = tolerance_master;
 parameter_est.flag_verbose = flag_verbose-0;
 parameter_est.flag_disp = flag_verbose-1;
+parameter_est.flag_normalize_Y = 1;
+parameter_est.nshuffle_Y = nshuffle;
 %parameter_est.flag_regularize_eccentricity_BtBn = 1;
 parameter_est.flag_regularize_eccentricity_simultaneous = flag_regularize_eccentricity_simultaneous;
 parameter_est.n_iteration_BtBn = n_iteration_BtBn;
@@ -483,8 +507,8 @@ parameter_est.MaxFunEvals_use_simultaneous = MaxFunEvals_use_simultaneous;
 ,B_est_l1 ...
 ,n_j_i_ ...
 ,index_nt_from_nj_i__ ...
-,ignore_Y_tru_ixj___ ...
-,Y_tru_ixj___ ...
+,ignore_Y_tru_nrm_prm_ixj___ ...
+,Y_tru_nrm_prm_ixj___ ...
 ,C_est_omega ...
 ,C_est_l0 ...
 ,C_est_l1 ...
@@ -511,6 +535,7 @@ SDE_nlp_ijXaABYC_update_all_1( ...
 ,C_est_l1 ...
 );
 %%%%%%%%;
+
 [ ...
  ~ ...
 ,BtBn_est_xx__ ...
@@ -536,6 +561,17 @@ SDE_BtBn_0( ...
 CtCn_est_inv_xx__ = pinv(CtCn_est_xx__,tolerance_master);
 %%%%;
 
+save(tmp_fname_mat
+     ,'' ...
+     ,'' ...
+     ,'' ...
+     );
+%%%%%%%%;
+end;%if ~tmp_flag_skip;
+%%%%%%%%;
+end;%for nshuffle=0:n_shuffle-1+1;
+
+
 %%%%%%%%;
 % Now visualize the results. ;
 %%%%%%%%;
@@ -546,10 +582,10 @@ hold on;
 for ni=0:n_i-1;
 t_t_ = t_it__{1+ni};
 X_est_xt__ = X_est_ixt___{1+ni};
-Y_tru_xj__ = Y_tru_ixj___{1+ni};
-ignore_Y_tru_xj__ = ignore_Y_tru_ixj___{1+ni};
-tmp_index_ = efind(~ignore_Y_tru_xj__(1+0,:));
-plot(t_t_(1+tmp_index_),Y_tru_xj__(1+0,1+tmp_index_),'ko');
+Y_tru_nrm_prm_xj__ = Y_tru_nrm_prm_ixj___{1+ni};
+ignore_Y_tru_nrm_prm_xj__ = ignore_Y_tru_nrm_prm_ixj___{1+ni};
+tmp_index_ = efind(~ignore_Y_tru_nrm_prm_xj__(1+0,:));
+plot(t_t_(1+tmp_index_),Y_tru_nrm_prm_xj__(1+0,1+tmp_index_),'ko');
 plot(t_t_,X_est_xt__(1+0,:),'rx');
 end;%for ni=0:n_i-1;
 hold off;
@@ -561,10 +597,10 @@ hold on;
 for ni=0:n_i-1;
 t_t_ = t_it__{1+ni};
 X_est_xt__ = X_est_ixt___{1+ni};
-Y_tru_xj__ = Y_tru_ixj___{1+ni};
-ignore_Y_tru_xj__ = ignore_Y_tru_ixj___{1+ni};
-tmp_index_ = efind(~ignore_Y_tru_xj__(1+1,:));
-plot(t_t_(1+tmp_index_),Y_tru_xj__(1+1,1+tmp_index_),'ko');
+Y_tru_nrm_prm_xj__ = Y_tru_nrm_prm_ixj___{1+ni};
+ignore_Y_tru_nrm_prm_xj__ = ignore_Y_tru_nrm_prm_ixj___{1+ni};
+tmp_index_ = efind(~ignore_Y_tru_nrm_prm_xj__(1+1,:));
+plot(t_t_(1+tmp_index_),Y_tru_nrm_prm_xj__(1+1,1+tmp_index_),'ko');
 plot(t_t_,X_est_xt__(1+1,:),'rx');
 end;%for ni=0:n_i-1;
 hold off;
@@ -579,10 +615,10 @@ hold on;
 for ni=0:n_i-1;
 t_t_ = t_it__{1+ni};
 X_est_xt__ = X_est_ixt___{1+ni};
-Y_tru_xj__ = Y_tru_ixj___{1+ni};
-ignore_Y_tru_xj__ = ignore_Y_tru_ixj___{1+ni};
-tmp_index_ = efind(~sum(ignore_Y_tru_xj__,1)); %<-- only plot Ys for which both are measured. ;
-plot(Y_tru_xj__(1+0,1+tmp_index_),Y_tru_xj__(1+1,1+tmp_index_),'ko');
+Y_tru_nrm_prm_xj__ = Y_tru_nrm_prm_ixj___{1+ni};
+ignore_Y_tru_nrm_prm_xj__ = ignore_Y_tru_nrm_prm_ixj___{1+ni};
+tmp_index_ = efind(~sum(ignore_Y_tru_nrm_prm_xj__,1)); %<-- only plot Ys for which both are measured. ;
+plot(Y_tru_nrm_prm_xj__(1+0,1+tmp_index_),Y_tru_nrm_prm_xj__(1+1,1+tmp_index_),'ko');
 plot(X_est_xt__(1+0,:),X_est_xt__(1+1,:),'rx');
 end;%for ni=0:n_i-1;
 hold off;
