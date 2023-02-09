@@ -291,6 +291,19 @@ end;%if ~exist(fname_mat,'file');
 if  exist(fname_mat,'file');
 load(fname_mat);
 end;%if  exist(fname_mat,'file');
+
+%%%%%%%%;
+% reload again in case string_root was overwritten. ;
+%%%%%%%%;
+platform_type = 'rusty';
+if exist('platform.type','file'); fp=fopen('platform.type'); platform_type = fgetl(fp); fclose(fp); end;
+if strcmp(platform_type,'eval1'); string_root = '/home'; end;
+if strcmp(platform_type,'access1'); string_root = '/data'; end;
+if strcmp(platform_type,'Windows'); string_root = 'C:/Users'; end;
+platform_user = 'rangan/dir_bcc';
+if exist('platform.user','file'); fp=fopen('platform.user'); platform_user = fgetl(fp); fclose(fp); end;
+setup_local;
+dir_base = sprintf('%s/%s/dir_PAD',string_root,platform_user);
   
 %%%%%%%%;
 data_measure_iva___ = isfinite(data_iva___) & (data_iva___~=0);
@@ -461,7 +474,6 @@ tmp_fname_pre = sprintf('%s/%s_%s',dir_PAD_output_mat,dir_PAD_infix,str_nshuffle
 %%%%%%%%;
 if ~tmp_flag_skip;
 %%%%%%%%;
-
 tolerance_master = 1e-2;
 n_a = 2;
 flag_regularize_eccentricity_simultaneous = 1;
@@ -535,7 +547,6 @@ SDE_nlp_ijXaABYC_update_all_1( ...
 ,C_est_l1 ...
 );
 %%%%%%%%;
-
 [ ...
  ~ ...
 ,BtBn_est_xx__ ...
@@ -560,21 +571,23 @@ SDE_BtBn_0( ...
 );
 CtCn_est_inv_xx__ = pinv(CtCn_est_xx__,tolerance_master);
 %%%%;
-
-save(tmp_fname_mat
-     ,'' ...
-     ,'' ...
-     ,'' ...
+save(tmp_fname_mat ...
+     ,'nv0','nv1' ...
+     ,'nshuffle','str_nshuffle','tmp_fname_pre' ...
+     ,'str_species','dir_PAD_infix','dir_PAD_output_mat','dir_PAD_output_jpg' ...
+     ,'tolerance_master','n_a','flag_regularize_eccentricity_simultaneous','n_iteration_BtBn','MaxFunEvals_use_BtBn','MaxFunEvals_use_simultaneous' ...
+     ,'parameter_est','n_x','n_a','a_est_xa__','A_est_xx__','B_est_omega','B_est_l0','B_est_l1','n_j_i_','C_est_omega','C_est_l0','C_est_l1' ...
+     ,'BtBn_est_xx__','CtCn_est_xx__' ...
      );
+close_fname_tmp(tmp_fname_pre);
 %%%%%%%%;
-end;%if ~tmp_flag_skip;
-%%%%%%%%;
-end;%for nshuffle=0:n_shuffle-1+1;
-
-
+if nshuffle==0;
 %%%%%%%%;
 % Now visualize the results. ;
 %%%%%%%%;
+tmp_fname_fig_pre = sprintf('%s/%s_%s_FIGA',dir_PAD_output_jpg,dir_PAD_infix,str_nshuffle);
+tmp_fname_fig_jpg = sprintf('%s.jpg',tmp_fname_fig_pre);
+if ~exist(tmp_fname_fig_jpg,'file');
 figure(1+nf);nf=nf+1;clf;figbig;
 %%%%;
 subplot(1,2,1);
@@ -607,7 +620,16 @@ hold off;
 xlim(age_lim_);xlabel('time');
 ylabel(u_label_measurement_{1+nv1},'Interpreter','none');
 %%%%;
-
+sgtitle(tmp_fname_fig_pre,'Interpreter','none');
+disp(sprintf(' %% writing %s',tmp_fname_fig_pre));
+print('-djpeg',tmp_fname_fig_jpg);
+close(gcf);
+%%%%;
+end;%if ~exist(tmp_fname_fig_jpg,'file');
+%%%%%%%%;
+tmp_fname_fig_pre = sprintf('%s/%s_%s_FIGB',dir_PAD_output_jpg,dir_PAD_infix,str_nshuffle);
+tmp_fname_fig_jpg = sprintf('%s.jpg',tmp_fname_fig_pre);
+if ~exist(tmp_fname_fig_jpg,'file');
 figure(1+nf);nf=nf+1;clf;figbig;
 %%%%;
 subplot(1,1,1);
@@ -625,3 +647,16 @@ hold off;
 xlabel(u_label_measurement_{1+nv0},'Interpreter','none');
 ylabel(u_label_measurement_{1+nv1},'Interpreter','none');
 %%%%;
+sgtitle(tmp_fname_fig_pre,'Interpreter','none');
+disp(sprintf(' %% writing %s',tmp_fname_fig_pre));
+print('-djpeg',tmp_fname_fig_jpg);
+close(gcf);
+%%%%;
+end;%if ~exist(tmp_fname_fig_jpg,'file');
+%%%%%%%%
+end;%if nshuffle==0;
+%%%%%%%%;
+end;%if ~tmp_flag_skip;
+%%%%%%%%;
+end;%for nshuffle=0:n_shuffle-1+1;
+
