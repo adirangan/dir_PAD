@@ -25,7 +25,7 @@ git add README.txt ;
 git add dir_m/*.m ;
 git add dir_m_dependencies/*.m ;
 git add *.sh ;
-git commit -m "updating dir_PAD " ;
+git commit -m "updating dir_PAD with test_Chimpanzee_4 " ;
 git push ;
 git pull ;
 cd /data/rangan/dir_bcc/dir_PAD ;
@@ -58,3 +58,4 @@ cd /data/rangan/dir_bcc/dir_PAD ;
 #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
 #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
 #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
+#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
